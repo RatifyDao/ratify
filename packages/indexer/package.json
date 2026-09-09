@@ -1,0 +1,24 @@
+{
+  "name": "ratify-indexer",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Consumes RatifyDAO contract events into a durable store, so governance history outlives RPC retention.",
+  "scripts": {
+    "start": "tsx src/index.ts",
+    "once": "tsx src/index.ts --once",
+    "reset": "tsx src/index.ts --reset",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@stellar/stellar-sdk": "^17.0.1",
+    "better-sqlite3": "^11.7.0",
+    "js-sha3": "^0.13.0"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.12",
+    "@types/node": "^22.10.5",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.3"
+  }
+}

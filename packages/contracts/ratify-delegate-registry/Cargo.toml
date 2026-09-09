@@ -1,0 +1,15 @@
+[package]
+name = "ratify-delegate-registry"
+version = "0.1.0"
+edition = "2021"
+description = "The public, on-chain record of whether a delegate turns up and how they vote."
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+doctest = false
+
+[dependencies]
+soroban-sdk = { workspace = true }
+
+[dev-dependencies]
+soroban-sdk = { workspace = true, features = ["testutils"] }

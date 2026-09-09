@@ -1,0 +1,106 @@
+/*
+ * RatifyDAO, civic register.
+ *
+ * The reference points are a public register, a parliamentary order paper and
+ * a bank statement. Cool paper, one authoritative ink, and colour used only
+ * where money or authority is involved.
+ *
+ * The rules this file exists to enforce:
+ *
+ *   Money is never a decoration. --outflow marks funds leaving a treasury and
+ *   nothing else earns it.
+ *
+ *   Every number is comparable. Tabular figures throughout, aligned on the
+ *   decimal, so a balance does not shift as it changes.
+ *
+ *   Almost no motion. Nothing counts up on load. Movement is reserved for
+ *   state the member just changed.
+ *
+ *   Dark mode is a second real theme, cool and low contrast, not the light
+ *   theme inverted.
+ */
+
+:root {
+  /* ---- Colour ------------------------------------------------------- */
+  --ground: #f4f5f6;
+  --surface: #ffffff;
+  --ink: #131a22;
+  --muted: #66717d;
+  --rule: #d3d8de;
+
+  --authority: #1f4fa3;
+  --outflow: #a33b2a;
+  --positive: #22684b;
+  --caution: #82661a;
+
+  /* Washes, for a row or a panel that needs the colour without shouting. */
+  --authority-wash: #eaf0fa;
+  --outflow-wash: #f8ece9;
+  --positive-wash: #e9f2ed;
+  --caution-wash: #f6f1e2;
+
+  /* ---- Type --------------------------------------------------------- */
+  --serif: "Spectral", "Source Serif 4", Georgia, "Times New Roman", serif;
+  --sans: "Inter", "IBM Plex Sans", system-ui, -apple-system, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+  --step--1: 0.8125rem;
+  --step-0: 0.9375rem;
+  --step-1: 1.0625rem;
+  --step-2: 1.375rem;
+  --step-3: 1.75rem;
+  --step-4: 2.25rem;
+  --step-5: 3rem;
+
+  /* ---- Space -------------------------------------------------------- */
+  --s-1: 0.25rem;
+  --s-2: 0.5rem;
+  --s-3: 0.75rem;
+  --s-4: 1rem;
+  --s-5: 1.5rem;
+  --s-6: 2rem;
+  --s-7: 3rem;
+  --s-8: 4.5rem;
+
+  --measure: 62ch;
+  --page: 74rem;
+  --radius: 2px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --ground: #121417;
+    --surface: #1a1e22;
+    --ink: #e7ebef;
+    --muted: #8b95a1;
+    --rule: #2c333a;
+
+    --authority: #5b8ad6;
+    --outflow: #d0705e;
+    --positive: #4e9b76;
+    --caution: #be9a38;
+
+    --authority-wash: #1b2430;
+    --outflow-wash: #2c1f1c;
+    --positive-wash: #17251f;
+    --caution-wash: #262117;
+  }
+}
+
+:root[data-theme="dark"] {
+  --ground: #121417;
+  --surface: #1a1e22;
+  --ink: #e7ebef;
+  --muted: #8b95a1;
+  --rule: #2c333a;
+
+  --authority: #5b8ad6;
+  --outflow: #d0705e;
+  --positive: #4e9b76;
+  --caution: #be9a38;
+
+  --authority-wash: #1b2430;
+  --outflow-wash: #2c1f1c;
+  --positive-wash: #17251f;
+  --caution-wash: #262117;
+}

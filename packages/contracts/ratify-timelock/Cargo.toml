@@ -1,0 +1,16 @@
+[package]
+name = "ratify-timelock"
+version = "0.1.0"
+edition = "2021"
+description = "Holds an approved action for a public delay, then lets anyone execute it. A guardian may cancel and may do nothing else."
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+doctest = false
+
+[dependencies]
+soroban-sdk = { workspace = true }
+stellar-governance = { workspace = true }
+
+[dev-dependencies]
+soroban-sdk = { workspace = true, features = ["testutils"] }

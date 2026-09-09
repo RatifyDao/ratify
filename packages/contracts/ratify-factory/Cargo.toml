@@ -1,0 +1,20 @@
+[package]
+name = "ratify-factory"
+version = "0.1.0"
+edition = "2021"
+description = "Deploys and wires a community's whole set of contracts in one transaction, and keeps the on-chain register of them."
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+doctest = false
+
+[features]
+# Deploying a real community in a test needs the contracts compiled to wasm
+# first, so those tests are opt in. `bash scripts/test.sh` turns them on.
+wasm-tests = []
+
+[dependencies]
+soroban-sdk = { workspace = true }
+
+[dev-dependencies]
+soroban-sdk = { workspace = true, features = ["testutils"] }

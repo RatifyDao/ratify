@@ -1,0 +1,21 @@
+[package]
+name = "ratify-governor"
+version = "0.1.0"
+edition = "2021"
+description = "Proposal lifecycle, voting, and the decision to queue. Queuing is on, and execution goes through the timelock."
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+doctest = false
+
+[dependencies]
+soroban-sdk = { workspace = true }
+stellar-governance = { workspace = true }
+
+[dev-dependencies]
+soroban-sdk = { workspace = true, features = ["testutils"] }
+ratify-membership = { path = "../ratify-membership" }
+ratify-weight-rule = { path = "../ratify-weight-rule" }
+ratify-timelock = { path = "../ratify-timelock" }
+ratify-treasury = { path = "../ratify-treasury" }
+ratify-delegate-registry = { path = "../ratify-delegate-registry" }

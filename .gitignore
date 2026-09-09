@@ -1,0 +1,13 @@
+target/
+vendor/
+.cargo/config.toml
+**/test_snapshots/
+
+node_modules/
+.next/
+*.tsbuildinfo
+
+data/
+.env
+
+.DS_Store

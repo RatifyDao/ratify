@@ -1,0 +1,16 @@
+[package]
+name = "ratify-membership"
+version = "0.1.0"
+edition = "2021"
+description = "Non-transferable membership tokens, and voting power that lapses unless it is renewed."
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+doctest = false
+
+[dependencies]
+soroban-sdk = { workspace = true }
+stellar-tokens = { workspace = true }
+
+[dev-dependencies]
+soroban-sdk = { workspace = true, features = ["testutils"] }

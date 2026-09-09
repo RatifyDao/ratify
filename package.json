@@ -1,0 +1,23 @@
+{
+  "name": "ratify-dao",
+  "version": "0.1.0",
+  "private": true,
+  "description": "RatifyDAO — modular on-chain governance on Stellar/Soroban.",
+  "workspaces": [
+    "packages/indexer",
+    "packages/web",
+    "packages/shared"
+  ],
+  "scripts": {
+    "dev":       "npm run dev       --workspace=packages/web",
+    "indexer":   "npm run start     --workspace=packages/indexer",
+    "build":     "npm run build     --workspace=packages/web",
+    "typecheck": "npm run typecheck --workspace=packages/indexer && npm run typecheck --workspace=packages/web",
+    "lint":      "npm run lint      --workspace=packages/web",
+    "test:contracts": "bash scripts/test.sh",
+    "reset-index":    "npm run reset --workspace=packages/indexer"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

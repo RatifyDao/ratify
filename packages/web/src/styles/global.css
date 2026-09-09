@@ -1,0 +1,551 @@
+@import "./tokens.css";
+
+/* ====================================================================
+   Reset, kept short
+   ==================================================================== */
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--ground);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: var(--step-0);
+  line-height: 1.55;
+  font-feature-settings: "tnum" 1, "lnum" 1;
+  -webkit-font-smoothing: antialiased;
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+/* ====================================================================
+   Type
+   ==================================================================== */
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--serif);
+  font-weight: 500;
+  line-height: 1.15;
+  letter-spacing: -0.011em;
+  margin: 0;
+  text-wrap: balance;
+}
+
+h1 {
+  font-size: var(--step-4);
+}
+h2 {
+  font-size: var(--step-2);
+}
+h3 {
+  font-size: var(--step-1);
+}
+
+p {
+  margin: 0 0 var(--s-4);
+  max-width: var(--measure);
+}
+
+a {
+  color: inherit;
+  text-decoration-color: var(--rule);
+  text-underline-offset: 3px;
+}
+
+a:hover {
+  text-decoration-color: currentColor;
+}
+
+/* A label above a figure or a field. Small, letterspaced, never shouting. */
+.label {
+  font-size: var(--step--1);
+  font-weight: 500;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin: 0 0 var(--s-2);
+  display: block;
+}
+
+.note {
+  color: var(--muted);
+  font-size: var(--step--1);
+  max-width: var(--measure);
+}
+
+.lede {
+  font-size: var(--step-1);
+  color: var(--muted);
+  max-width: var(--measure);
+}
+
+/* Addresses and hashes. Never wrapped, never allowed to break a layout. */
+.mono {
+  font-family: var(--mono);
+  font-size: 0.9em;
+  white-space: nowrap;
+}
+
+/* ====================================================================
+   Figures
+   ==================================================================== */
+
+/* Every number in the interface. Tabular, so a balance does not shift as it
+   changes, and aligned right so decimals line up down a column. */
+.fig {
+  font-variant-numeric: tabular-nums lining-nums;
+  font-feature-settings: "tnum" 1, "lnum" 1;
+}
+
+.fig--lg {
+  font-size: var(--step-3);
+  letter-spacing: -0.02em;
+}
+
+.fig--outflow {
+  color: var(--outflow);
+}
+
+.fig--none {
+  color: var(--muted);
+}
+
+/* ====================================================================
+   Page furniture
+   ==================================================================== */
+
+.page {
+  max-width: var(--page);
+  margin: 0 auto;
+  padding: 0 var(--s-5);
+}
+
+.masthead {
+  border-bottom: 1px solid var(--rule);
+  background: var(--surface);
+}
+
+.masthead__inner {
+  max-width: var(--page);
+  margin: 0 auto;
+  padding: var(--s-3) var(--s-5);
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-5);
+  flex-wrap: wrap;
+}
+
+.masthead__mark {
+  font-family: var(--serif);
+  font-size: var(--step-1);
+  letter-spacing: 0.02em;
+  text-decoration: none;
+  margin-right: auto;
+}
+
+.masthead__mark b {
+  font-weight: 500;
+}
+
+.masthead nav {
+  display: flex;
+  gap: var(--s-4);
+  font-size: var(--step--1);
+}
+
+.masthead nav a {
+  text-decoration: none;
+  color: var(--muted);
+  padding-bottom: 2px;
+  border-bottom: 2px solid transparent;
+}
+
+.masthead nav a:hover,
+.masthead nav a[aria-current="page"] {
+  color: var(--ink);
+  border-bottom-color: var(--authority);
+}
+
+.colophon {
+  border-top: 1px solid var(--rule);
+  margin-top: var(--s-8);
+  padding: var(--s-5) 0 var(--s-7);
+  color: var(--muted);
+  font-size: var(--step--1);
+}
+
+/* A page's opening block: what this is, in one line. */
+.masthead-block {
+  padding: var(--s-7) 0 var(--s-5);
+  border-bottom: 1px solid var(--rule);
+  margin-bottom: var(--s-6);
+}
+
+.masthead-block h1 {
+  margin-bottom: var(--s-3);
+}
+
+section {
+  margin-bottom: var(--s-7);
+}
+
+.section-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s-4);
+  border-bottom: 1px solid var(--rule);
+  padding-bottom: var(--s-2);
+  margin-bottom: var(--s-4);
+}
+
+/* ====================================================================
+   Panels and tables
+   ==================================================================== */
+
+.panel {
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  padding: var(--s-5);
+}
+
+.grid {
+  display: grid;
+  gap: var(--s-4);
+  grid-template-columns: repeat(auto-fit, minmax(15rem, 1fr));
+}
+
+/* A figure with its label, as a bank statement sets one. */
+.stat {
+  border-top: 2px solid var(--ink);
+  padding-top: var(--s-3);
+}
+
+.stat__value {
+  font-family: var(--serif);
+  font-size: var(--step-3);
+  line-height: 1.05;
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+.stat__note {
+  color: var(--muted);
+  font-size: var(--step--1);
+  margin-top: var(--s-1);
+}
+
+.table-scroll {
+  overflow-x: auto;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--step--1);
+}
+
+thead th {
+  text-align: left;
+  font-weight: 500;
+  font-size: var(--step--1);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--muted);
+  padding: var(--s-3) var(--s-4);
+  border-bottom: 1px solid var(--rule);
+  white-space: nowrap;
+}
+
+tbody td {
+  padding: var(--s-3) var(--s-4);
+  border-bottom: 1px solid var(--rule);
+  vertical-align: baseline;
+}
+
+tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.num {
+  text-align: right;
+  font-variant-numeric: tabular-nums lining-nums;
+  white-space: nowrap;
+}
+
+/* ====================================================================
+   Status
+   ==================================================================== */
+
+.chip {
+  display: inline-block;
+  font-size: var(--step--1);
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 2px var(--s-2);
+  border: 1px solid currentColor;
+  border-radius: var(--radius);
+  white-space: nowrap;
+}
+
+.chip--authority {
+  color: var(--authority);
+  background: var(--authority-wash);
+}
+.chip--positive {
+  color: var(--positive);
+  background: var(--positive-wash);
+}
+.chip--caution {
+  color: var(--caution);
+  background: var(--caution-wash);
+}
+.chip--outflow {
+  color: var(--outflow);
+  background: var(--outflow-wash);
+}
+.chip--quiet {
+  color: var(--muted);
+  background: transparent;
+}
+
+/* ====================================================================
+   Controls
+   ==================================================================== */
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s-2);
+  font: inherit;
+  font-size: var(--step--1);
+  font-weight: 500;
+  padding: var(--s-2) var(--s-4);
+  border-radius: var(--radius);
+  border: 1px solid var(--authority);
+  background: var(--authority);
+  color: #fff;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background 120ms linear;
+}
+
+.button:hover {
+  background: color-mix(in srgb, var(--authority) 88%, black);
+}
+
+.button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.button--quiet {
+  background: transparent;
+  color: var(--ink);
+  border-color: var(--rule);
+}
+
+.button--quiet:hover {
+  background: color-mix(in srgb, var(--ink) 5%, transparent);
+}
+
+.button--outflow {
+  background: var(--outflow);
+  border-color: var(--outflow);
+}
+
+.field {
+  display: block;
+  margin-bottom: var(--s-4);
+}
+
+.field input,
+.field textarea,
+.field select {
+  font: inherit;
+  font-size: var(--step-0);
+  width: 100%;
+  padding: var(--s-2) var(--s-3);
+  background: var(--surface);
+  color: var(--ink);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius);
+}
+
+.field input:focus,
+.field textarea:focus,
+.field select:focus {
+  outline: 2px solid var(--authority);
+  outline-offset: 1px;
+}
+
+.field input.fig,
+.field .fig {
+  font-variant-numeric: tabular-nums lining-nums;
+}
+
+:focus-visible {
+  outline: 2px solid var(--authority);
+  outline-offset: 2px;
+}
+
+/* ====================================================================
+   Notices
+   ==================================================================== */
+
+.notice {
+  border: 1px solid var(--rule);
+  border-left: 3px solid var(--muted);
+  border-radius: var(--radius);
+  background: var(--surface);
+  padding: var(--s-3) var(--s-4);
+  font-size: var(--step--1);
+  margin-bottom: var(--s-4);
+}
+
+.notice--caution {
+  border-left-color: var(--caution);
+}
+.notice--outflow {
+  border-left-color: var(--outflow);
+}
+.notice--authority {
+  border-left-color: var(--authority);
+}
+
+/* An empty state, told truthfully. */
+.empty {
+  border: 1px dashed var(--rule);
+  border-radius: var(--radius);
+  padding: var(--s-6);
+  text-align: center;
+  color: var(--muted);
+  font-size: var(--step--1);
+}
+
+/* ====================================================================
+   The decision timeline
+   ==================================================================== */
+
+.timeline {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  border-left: 1px solid var(--rule);
+}
+
+.timeline li {
+  position: relative;
+  padding: 0 0 var(--s-4) var(--s-5);
+}
+
+.timeline li::before {
+  content: "";
+  position: absolute;
+  left: -4px;
+  top: 7px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--rule);
+}
+
+.timeline li[data-done="true"]::before {
+  background: var(--authority);
+}
+
+.timeline li[data-paid="true"]::before {
+  background: var(--outflow);
+}
+
+.timeline__stage {
+  font-weight: 500;
+}
+
+.timeline__meta {
+  color: var(--muted);
+  font-size: var(--step--1);
+  display: flex;
+  gap: var(--s-3);
+  flex-wrap: wrap;
+}
+
+/* ====================================================================
+   Quorum and vote bars
+   ==================================================================== */
+
+.bar {
+  height: 8px;
+  background: color-mix(in srgb, var(--ink) 8%, transparent);
+  border-radius: 1px;
+  overflow: hidden;
+  display: flex;
+}
+
+.bar span {
+  display: block;
+  height: 100%;
+}
+
+.bar__for {
+  background: var(--positive);
+}
+.bar__against {
+  background: var(--outflow);
+}
+.bar__abstain {
+  background: var(--muted);
+}
+.bar__reached {
+  background: var(--authority);
+}
+
+/* ====================================================================
+   Motion
+   ==================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    transition-duration: 0.001ms !important;
+  }
+}
+
+/* ====================================================================
+   Narrow screens
+   ==================================================================== */
+
+@media (max-width: 40rem) {
+  :root {
+    --step-4: 1.875rem;
+    --step-3: 1.5rem;
+  }
+
+  .page {
+    padding: 0 var(--s-4);
+  }
+
+  .masthead__inner {
+    padding: var(--s-3) var(--s-4);
+  }
+}

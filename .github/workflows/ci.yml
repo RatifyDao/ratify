@@ -1,0 +1,88 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  # ── Rust contracts ────────────────────────────────────────────────────────
+  contracts:
+    name: Contracts
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+
+      - name: Cache Cargo registry
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-cargo-
+
+      - name: Check formatting
+        run: cargo fmt --all -- --check
+
+      - name: Clippy
+        run: cargo clippy --workspace --all-targets -- -D warnings
+
+      - name: Unit tests
+        run: cargo test --workspace
+
+  # ── TypeScript — indexer ─────────────────────────────────────────────────
+  indexer:
+    name: Indexer
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --workspace=packages/indexer --workspace=packages/shared
+
+      - name: Type check
+        run: npm run typecheck --workspace=packages/indexer
+
+  # ── TypeScript — web ─────────────────────────────────────────────────────
+  web:
+    name: Web
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci --workspace=packages/web --workspace=packages/shared
+
+      - name: Type check
+        run: npm run typecheck --workspace=packages/web
+
+      - name: Lint
+        run: npm run lint --workspace=packages/web
+
+      - name: Build
+        run: npm run build --workspace=packages/web
+        env:
+          # Provide stubs so Next.js build does not fail on missing env vars
+          NEXT_PUBLIC_RATIFY_RPC_URL: https://soroban-testnet.stellar.org
+          NEXT_PUBLIC_RATIFY_NETWORK_PASSPHRASE: "Test SDF Network ; September 2015"
+          RATIFY_DB_PATH: /tmp/ratify.db

@@ -1,6 +1,25 @@
-# RatifyDAO
+<p align="center">
+  <img src="assets/logo.svg" alt="RatifyDAO" width="420"/>
+</p>
 
-Governance on Stellar where the vote actually moves the money.
+<p align="center">
+  <strong>Modular on-chain governance on Stellar — where the vote actually moves the money.</strong>
+</p>
+
+<p align="center">
+  <a href="https://github.com/RatifyDao/ratify/actions/workflows/ci.yml">
+    <img src="https://github.com/RatifyDao/ratify/actions/workflows/ci.yml/badge.svg" alt="CI"/>
+  </a>
+  <a href="LICENSE">
+    <img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT License"/>
+  </a>
+  <a href="AUDIT.md">
+    <img src="https://img.shields.io/badge/audit-pending-orange.svg" alt="Audit pending"/>
+  </a>
+  <img src="https://img.shields.io/badge/network-Stellar%20Testnet-6366f1.svg" alt="Stellar Testnet"/>
+</p>
+
+---
 
 A DAO platform built on Soroban with a real treasury, an enforced delay before
 action, and delegates who carry a public record.

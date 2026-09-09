@@ -1,0 +1,29 @@
+# CODEOWNERS
+#
+# These owners are automatically requested for review when a pull request
+# changes files they own. Syntax: pattern  @owner
+#
+# See https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-code-owners
+
+# Default — catch anything not matched below
+*                                   @RatifyDao
+
+# Contracts — highest scrutiny, require explicit sign-off
+packages/contracts/                 @RatifyDao
+
+# Shared types — affects both indexer and web
+packages/shared/                    @RatifyDao
+
+# Indexer
+packages/indexer/                   @RatifyDao
+
+# Web interface
+packages/web/                       @RatifyDao
+
+# CI and repo config
+.github/                            @RatifyDao
+scripts/                            @RatifyDao
+
+# Security and legal — always review
+SECURITY.md                         @RatifyDao
+LICENSE                             @RatifyDao

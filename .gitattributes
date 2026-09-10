@@ -1,0 +1,38 @@
+# Normalise line endings to LF in the repository.
+# Windows checkouts get CRLF locally (via core.autocrlf=true) but the
+# stored blob is always LF, so cargo fmt and other Unix tools in CI
+# never see CRLF.
+* text=auto eol=lf
+
+# Rust source — always LF
+*.rs   text eol=lf
+*.toml text eol=lf
+
+# TypeScript / JavaScript — always LF
+*.ts   text eol=lf
+*.tsx  text eol=lf
+*.js   text eol=lf
+*.mjs  text eol=lf
+*.json text eol=lf
+
+# Shell scripts — always LF
+*.sh   text eol=lf
+
+# YAML — always LF
+*.yml  text eol=lf
+*.yaml text eol=lf
+
+# Markdown — always LF
+*.md   text eol=lf
+
+# CSS — always LF
+*.css  text eol=lf
+
+# SVG — always LF
+*.svg  text eol=lf
+
+# Binary files — no line ending conversion
+*.png  binary
+*.jpg  binary
+*.ico  binary
+*.wasm binary

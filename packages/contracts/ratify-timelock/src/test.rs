@@ -22,11 +22,16 @@ pub struct Recorder;
 impl Recorder {
     pub fn record(e: &Env, caller: Address, amount: i128) {
         caller.require_auth();
-        e.storage().instance().set(&symbol_short!("amount"), &amount);
+        e.storage()
+            .instance()
+            .set(&symbol_short!("amount"), &amount);
     }
 
     pub fn recorded(e: &Env) -> i128 {
-        e.storage().instance().get(&symbol_short!("amount")).unwrap_or(0)
+        e.storage()
+            .instance()
+            .get(&symbol_short!("amount"))
+            .unwrap_or(0)
     }
 }
 
@@ -101,14 +106,28 @@ fn schedule(f: &Fixture, amount: i128, s: u8) -> BytesN<32> {
 
 fn execute(f: &Fixture, amount: i128, s: u8) {
     let (target, function, args) = action(f, amount);
-    f.iface.execute(&target, &function, &args, &zero(&f.e), &salt(&f.e, s), &None);
+    f.iface.execute(
+        &target,
+        &function,
+        &args,
+        &zero(&f.e),
+        &salt(&f.e, s),
+        &None,
+    );
 }
 
 type TryResult<T> = Result<Result<T, ConversionError>, Result<Error, InvokeError>>;
 
 fn try_execute(f: &Fixture, amount: i128, s: u8) -> TryResult<Val> {
     let (target, function, args) = action(f, amount);
-    f.iface.try_execute(&target, &function, &args, &zero(&f.e), &salt(&f.e, s), &None)
+    f.iface.try_execute(
+        &target,
+        &function,
+        &args,
+        &zero(&f.e),
+        &salt(&f.e, s),
+        &None,
+    )
 }
 
 // ################## SETUP ##################
@@ -294,7 +313,8 @@ fn a_cancellation_must_state_a_reason() {
     let id = schedule(&f, 750, 1);
 
     assert_eq!(
-        f.timelock.try_cancel_with_reason(&id, &f.guardian, &String::from_str(&f.e, "")),
+        f.timelock
+            .try_cancel_with_reason(&id, &f.guardian, &String::from_str(&f.e, "")),
         Err(err(RatifyTimelockError::ReasonRequired))
     );
     assert_eq!(f.iface.get_operation_state(&id), OperationState::Waiting);
@@ -320,7 +340,10 @@ fn the_guardian_cannot_stop_an_action_that_already_ran() {
     execute(&f, 750, 1);
 
     let reason = String::from_str(&f.e, "Too late.");
-    assert!(f.timelock.try_cancel_with_reason(&id, &f.guardian, &reason).is_err());
+    assert!(f
+        .timelock
+        .try_cancel_with_reason(&id, &f.guardian, &reason)
+        .is_err());
     assert_eq!(f.recorder.recorded(), 750);
 }
 
@@ -368,7 +391,10 @@ fn changing_the_delay_must_serve_the_current_delay_first() {
         &DELAY,
         &f.governor,
     );
-    assert_eq!(id, f.timelock.hash_delay_update(&new_delay, &zero(&f.e), &s));
+    assert_eq!(
+        id,
+        f.timelock.hash_delay_update(&new_delay, &zero(&f.e), &s)
+    );
 
     // Not yet.
     assert!(f
@@ -388,7 +414,10 @@ fn an_unscheduled_delay_change_does_nothing() {
     let f = setup();
     f.e.ledger().set_sequence_number(START + DELAY);
 
-    assert!(f.timelock.try_execute_delay_update(&1u32, &zero(&f.e), &salt(&f.e, 9)).is_err());
+    assert!(f
+        .timelock
+        .try_execute_delay_update(&1u32, &zero(&f.e), &salt(&f.e, 9))
+        .is_err());
     assert_eq!(f.iface.get_min_delay(), DELAY);
 }
 
@@ -396,7 +425,8 @@ fn an_unscheduled_delay_change_does_nothing() {
 fn the_delay_can_never_be_set_to_zero() {
     let f = setup();
     assert_eq!(
-        f.timelock.try_execute_delay_update(&0u32, &zero(&f.e), &salt(&f.e, 9)),
+        f.timelock
+            .try_execute_delay_update(&0u32, &zero(&f.e), &salt(&f.e, 9)),
         Err(err(RatifyTimelockError::DelayCannotBeZero))
     );
 }
@@ -442,10 +472,15 @@ fn governance_replaces_the_guardian_through_the_queue() {
         &DELAY,
         &f.governor,
     );
-    assert_eq!(id, f.timelock.hash_guardian_change(&new_guardian, &zero(&f.e), &s));
+    assert_eq!(
+        id,
+        f.timelock
+            .hash_guardian_change(&new_guardian, &zero(&f.e), &s)
+    );
 
     f.e.ledger().set_sequence_number(START + DELAY);
-    f.timelock.execute_guardian_change(&new_guardian, &zero(&f.e), &s);
+    f.timelock
+        .execute_guardian_change(&new_guardian, &zero(&f.e), &s);
 
     assert_eq!(f.timelock.guardian(), new_guardian);
 
@@ -453,10 +488,12 @@ fn governance_replaces_the_guardian_through_the_queue() {
     let waiting = schedule(&f, 750, 1);
     let reason = String::from_str(&f.e, "Still trying.");
     assert_eq!(
-        f.timelock.try_cancel_with_reason(&waiting, &f.guardian, &reason),
+        f.timelock
+            .try_cancel_with_reason(&waiting, &f.guardian, &reason),
         Err(err(RatifyTimelockError::NotGuardian))
     );
-    f.timelock.cancel_with_reason(&waiting, &new_guardian, &reason);
+    f.timelock
+        .cancel_with_reason(&waiting, &new_guardian, &reason);
     assert_eq!(f.iface.get_operation_state(&waiting), OperationState::Unset);
 }
 

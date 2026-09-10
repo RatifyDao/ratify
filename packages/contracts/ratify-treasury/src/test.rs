@@ -46,7 +46,14 @@ fn setup<'a>() -> Fixture<'a> {
     let token = token::TokenClient::new(&e, &asset);
     mint.mint(&treasury_id, &1_000_000);
 
-    Fixture { e, timelock, treasury, asset, mint, token }
+    Fixture {
+        e,
+        timelock,
+        treasury,
+        asset,
+        mint,
+        token,
+    }
 }
 
 fn proposal_id(e: &Env, byte: u8) -> BytesN<32> {
@@ -55,7 +62,8 @@ fn proposal_id(e: &Env, byte: u8) -> BytesN<32> {
 
 /// Admits an asset with generous limits, so a test can focus on one rule.
 fn permit(f: &Fixture, per_payment: i128, window: i128) {
-    f.treasury.set_policy(&f.asset, &per_payment, &window, &WINDOW);
+    f.treasury
+        .set_policy(&f.asset, &per_payment, &window, &WINDOW);
 }
 
 // ################## THE PERMISSION CHAIN ##################
@@ -75,7 +83,9 @@ fn payment_requires_the_timelock() {
     // payment cannot go through however well formed it is.
     let stranger = Address::generate(&f.e);
     f.e.set_auths(&[]);
-    let result = f.treasury.try_pay(&f.asset, &stranger, &100, &proposal_id(&f.e, 1));
+    let result = f
+        .treasury
+        .try_pay(&f.asset, &stranger, &100, &proposal_id(&f.e, 1));
     assert!(result.is_err());
 }
 
@@ -83,7 +93,9 @@ fn payment_requires_the_timelock() {
 fn policy_changes_require_the_timelock() {
     let f = setup();
     f.e.set_auths(&[]);
-    let result = f.treasury.try_set_policy(&f.asset, &1_000, &10_000, &WINDOW);
+    let result = f
+        .treasury
+        .try_set_policy(&f.asset, &1_000, &10_000, &WINDOW);
     assert!(result.is_err());
 }
 
@@ -108,7 +120,9 @@ fn withdrawing_a_policy_bars_the_asset_again() {
 
     f.treasury.remove_policy(&f.asset);
 
-    let result = f.treasury.try_pay(&f.asset, &to, &100, &proposal_id(&f.e, 2));
+    let result = f
+        .treasury
+        .try_pay(&f.asset, &to, &100, &proposal_id(&f.e, 2));
     assert_eq!(result, Err(err(TreasuryError::AssetNotAllowed)));
     assert_eq!(f.token.balance(&to), 100);
 }
@@ -151,7 +165,9 @@ fn a_payment_over_the_per_payment_cap_is_refused() {
     let to = Address::generate(&f.e);
     permit(&f, 1_000, 100_000);
 
-    let result = f.treasury.try_pay(&f.asset, &to, &1_001, &proposal_id(&f.e, 1));
+    let result = f
+        .treasury
+        .try_pay(&f.asset, &to, &1_001, &proposal_id(&f.e, 1));
     assert_eq!(result, Err(err(TreasuryError::OverPerPaymentCap)));
     assert_eq!(f.token.balance(&to), 0);
 }
@@ -179,7 +195,9 @@ fn a_run_of_payments_over_the_window_cap_is_refused() {
 
     // Each payment is inside the per-payment cap. The third breaches the
     // rolling total, which is the limit the vote cannot argue with.
-    let result = f.treasury.try_pay(&f.asset, &to, &1_000, &proposal_id(&f.e, 3));
+    let result = f
+        .treasury
+        .try_pay(&f.asset, &to, &1_000, &proposal_id(&f.e, 3));
     assert_eq!(result, Err(err(TreasuryError::OverWindowCap)));
     assert_eq!(f.token.balance(&to), 2_000);
 }
@@ -220,7 +238,8 @@ fn a_zero_or_negative_payment_is_refused() {
         Err(err(TreasuryError::InvalidAmount))
     );
     assert_eq!(
-        f.treasury.try_pay(&f.asset, &to, &-100, &proposal_id(&f.e, 2)),
+        f.treasury
+            .try_pay(&f.asset, &to, &-100, &proposal_id(&f.e, 2)),
         Err(err(TreasuryError::InvalidAmount))
     );
 }
@@ -249,10 +268,13 @@ fn a_restricted_treasury_pays_allowed_destinations_only() {
     f.treasury.set_destination_restriction(&true);
     f.treasury.set_destination(&allowed, &true);
 
-    f.treasury.pay(&f.asset, &allowed, &100, &proposal_id(&f.e, 1));
+    f.treasury
+        .pay(&f.asset, &allowed, &100, &proposal_id(&f.e, 1));
     assert_eq!(f.token.balance(&allowed), 100);
 
-    let result = f.treasury.try_pay(&f.asset, &stranger, &100, &proposal_id(&f.e, 2));
+    let result = f
+        .treasury
+        .try_pay(&f.asset, &stranger, &100, &proposal_id(&f.e, 2));
     assert_eq!(result, Err(err(TreasuryError::DestinationNotAllowed)));
     assert_eq!(f.token.balance(&stranger), 0);
 }
@@ -270,7 +292,8 @@ fn a_destination_can_be_taken_off_the_allowlist() {
 
     assert!(!f.treasury.destination_allowed(&to));
     assert_eq!(
-        f.treasury.try_pay(&f.asset, &to, &100, &proposal_id(&f.e, 2)),
+        f.treasury
+            .try_pay(&f.asset, &to, &100, &proposal_id(&f.e, 2)),
         Err(err(TreasuryError::DestinationNotAllowed))
     );
 }
@@ -284,9 +307,11 @@ fn every_payment_is_recorded_against_its_proposal() {
     let second = Address::generate(&f.e);
     permit(&f, 1_000, 10_000);
 
-    f.treasury.pay(&f.asset, &first, &100, &proposal_id(&f.e, 1));
+    f.treasury
+        .pay(&f.asset, &first, &100, &proposal_id(&f.e, 1));
     f.e.ledger().set_sequence_number(10_050);
-    f.treasury.pay(&f.asset, &second, &250, &proposal_id(&f.e, 2));
+    f.treasury
+        .pay(&f.asset, &second, &250, &proposal_id(&f.e, 2));
 
     assert_eq!(f.treasury.outflow_count(), 2);
 
@@ -309,7 +334,9 @@ fn a_refused_payment_leaves_no_record() {
     let to = Address::generate(&f.e);
     permit(&f, 100, 10_000);
 
-    let _ = f.treasury.try_pay(&f.asset, &to, &500, &proposal_id(&f.e, 1));
+    let _ = f
+        .treasury
+        .try_pay(&f.asset, &to, &500, &proposal_id(&f.e, 1));
 
     assert_eq!(f.treasury.outflow_count(), 0);
     assert_eq!(f.treasury.window_spent(&f.asset), 0);

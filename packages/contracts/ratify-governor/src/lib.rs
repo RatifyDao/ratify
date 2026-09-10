@@ -26,16 +26,17 @@ use soroban_sdk::{
 };
 use stellar_governance::{
     governor::{
+        emit_proposal_cancelled, emit_proposal_executed, hash_proposal,
         storage::{GovernorStorageKey, ProposalCore},
-        emit_proposal_cancelled, emit_proposal_executed, hash_proposal, Governor, ProposalState,
+        Governor, ProposalState,
     },
     timelock::{hash_operation, Operation, TimelockClient},
     votes::VotesClient,
 };
 
 pub use crate::types::{
-    RatifyGovernorError, Ballot, GovStorageKey, GuardianClient, GuardianOf, ProposalStoppedWithReason,
-    Registry, RegistryClient,
+    Ballot, GovStorageKey, GuardianClient, GuardianOf, ProposalStoppedWithReason,
+    RatifyGovernorError, Registry, RegistryClient,
 };
 
 /// Hundredths of a percent in the whole.
@@ -83,10 +84,16 @@ impl RatifyGovernor {
         stellar_governance::governor::set_voting_delay(e, voting_delay);
         stellar_governance::governor::set_voting_period(e, voting_period);
         stellar_governance::governor::set_proposal_threshold(e, proposal_threshold);
-        e.storage().instance().set(&GovStorageKey::Timelock, &timelock);
-        e.storage().instance().set(&GovStorageKey::QuorumBps, &quorum_bps);
+        e.storage()
+            .instance()
+            .set(&GovStorageKey::Timelock, &timelock);
+        e.storage()
+            .instance()
+            .set(&GovStorageKey::QuorumBps, &quorum_bps);
         if let Some(registry) = registry {
-            e.storage().instance().set(&GovStorageKey::Registry, &registry);
+            e.storage()
+                .instance()
+                .set(&GovStorageKey::Registry, &registry);
         }
     }
 
@@ -108,7 +115,10 @@ impl RatifyGovernor {
     /// Returns the share of live voting power a proposal must reach, in
     /// hundredths of a percent.
     pub fn quorum_bps(e: &Env) -> u32 {
-        e.storage().instance().get(&GovStorageKey::QuorumBps).unwrap_or(0)
+        e.storage()
+            .instance()
+            .get(&GovStorageKey::QuorumBps)
+            .unwrap_or(0)
     }
 
     /// Returns the vote tallies for a proposal.
@@ -177,7 +187,7 @@ impl RatifyGovernor {
             panic_with_error!(e, RatifyGovernorError::NotGuardian);
         }
         guardian.require_auth();
-        if reason.len() == 0 {
+        if reason.is_empty() {
             panic_with_error!(e, RatifyGovernorError::ReasonRequired);
         }
         if reason.len() > MAX_REASON_LENGTH {
@@ -191,14 +201,8 @@ impl RatifyGovernor {
         // executable regardless of what the governor thinks.
         if state == ProposalState::Queued {
             let brake = GuardianClient::new(e, &timelock);
-            for operation in
-                Self::operations(e, &proposal_id, &targets, &functions, &args).iter()
-            {
-                brake.cancel_with_reason(
-                    &hash_operation(e, &operation),
-                    &guardian,
-                    &reason,
-                );
+            for operation in Self::operations(e, &proposal_id, &targets, &functions, &args).iter() {
+                brake.cancel_with_reason(&hash_operation(e, &operation), &guardian, &reason);
             }
         } else if state != ProposalState::Pending
             && state != ProposalState::Active
@@ -208,8 +212,12 @@ impl RatifyGovernor {
         }
 
         stellar_governance::governor::cancel(e, targets, functions, args, &description_hash);
-        ProposalStoppedWithReason { proposal_id: proposal_id.clone(), guardian, reason }
-            .publish(e);
+        ProposalStoppedWithReason {
+            proposal_id: proposal_id.clone(),
+            guardian,
+            reason,
+        }
+        .publish(e);
         proposal_id
     }
 
@@ -327,10 +335,8 @@ impl Governor for RatifyGovernor {
         );
 
         if let Some(registry) = Self::registry(e) {
-            let snapshot =
-                stellar_governance::governor::get_proposal_snapshot(e, &proposal_id);
-            let deadline =
-                stellar_governance::governor::get_proposal_deadline(e, &proposal_id);
+            let snapshot = stellar_governance::governor::get_proposal_snapshot(e, &proposal_id);
+            let deadline = stellar_governance::governor::get_proposal_deadline(e, &proposal_id);
             RegistryClient::new(e, &registry).open(&proposal_id, &snapshot, &deadline);
         }
 
@@ -351,8 +357,7 @@ impl Governor for RatifyGovernor {
         voter: Address,
     ) -> u128 {
         voter.require_auth();
-        let snapshot =
-            stellar_governance::governor::get_proposal_snapshot(e, &proposal_id);
+        let snapshot = stellar_governance::governor::get_proposal_snapshot(e, &proposal_id);
         let quorum = Self::quorum(e, snapshot);
         let weight = stellar_governance::governor::cast_vote(
             e,
@@ -369,12 +374,7 @@ impl Governor for RatifyGovernor {
                 1 => Ballot::For,
                 _ => Ballot::Abstain,
             };
-            RegistryClient::new(e, &registry).record_vote(
-                &voter,
-                &proposal_id,
-                &ballot,
-                &weight,
-            );
+            RegistryClient::new(e, &registry).record_vote(&voter, &proposal_id, &ballot, &weight);
         }
 
         weight

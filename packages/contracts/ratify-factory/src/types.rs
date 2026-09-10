@@ -3,7 +3,6 @@
 
 use soroban_sdk::{contracterror, contractevent, contracttype, Address, BytesN, String};
 
-
 /// How a community counts a vote.
 ///
 /// Declared here rather than imported so the factory does not depend on the

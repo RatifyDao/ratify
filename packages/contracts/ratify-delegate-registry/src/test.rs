@@ -8,7 +8,7 @@ use soroban_sdk::{
 };
 
 use crate::{
-    RatifyDelegateRegistry, RatifyDelegateRegistryClient, Ballot, RegistryError, VoteCounts,
+    Ballot, RatifyDelegateRegistry, RatifyDelegateRegistryClient, RegistryError, VoteCounts,
 };
 
 const START: u32 = 10_000;
@@ -27,16 +27,23 @@ impl Stub {
     pub fn set_counts(e: &Env, for_votes: u128, against_votes: u128) {
         e.storage().instance().set(
             &symbol_short!("counts"),
-            &VoteCounts { for_votes, against_votes, abstain_votes: 0 },
+            &VoteCounts {
+                for_votes,
+                against_votes,
+                abstain_votes: 0,
+            },
         );
     }
 
     pub fn get_proposal_vote_counts(e: &Env, _proposal_id: BytesN<32>) -> VoteCounts {
-        e.storage().instance().get(&symbol_short!("counts")).unwrap_or(VoteCounts {
-            against_votes: 0,
-            for_votes: 0,
-            abstain_votes: 0,
-        })
+        e.storage()
+            .instance()
+            .get(&symbol_short!("counts"))
+            .unwrap_or(VoteCounts {
+                against_votes: 0,
+                for_votes: 0,
+                abstain_votes: 0,
+            })
     }
 
     pub fn set_weight(e: &Env, account: Address, weight: u128) {
@@ -46,7 +53,9 @@ impl Stub {
             .get(&symbol_short!("weights"))
             .unwrap_or(Map::new(e));
         weights.set(account, weight);
-        e.storage().instance().set(&symbol_short!("weights"), &weights);
+        e.storage()
+            .instance()
+            .set(&symbol_short!("weights"), &weights);
     }
 
     pub fn weight_at(e: &Env, account: Address, _ledger: u32) -> u128 {
@@ -133,7 +142,8 @@ fn a_vote_on_an_unknown_proposal_is_refused() {
     let f = setup();
     let alice = Address::generate(&f.e);
     assert_eq!(
-        f.registry.try_record_vote(&alice, &pid(&f.e, 9), &Ballot::For, &1),
+        f.registry
+            .try_record_vote(&alice, &pid(&f.e, 9), &Ballot::For, &1),
         Err(err(RegistryError::ProposalNotFound))
     );
 }

@@ -143,7 +143,10 @@ fn one_member_one_vote_gives_a_delegate_a_vote_per_member() {
 fn time_weighting_rewards_unbroken_membership_in_steps() {
     let f = setup_with(
         WeightModel::TimeWeighted,
-        Some(TenureSchedule { step_ledgers: STEP, max_steps: 5 }),
+        Some(TenureSchedule {
+            step_ledgers: STEP,
+            max_steps: 5,
+        }),
     );
     let alice = active_member(&f, 1);
 
@@ -157,7 +160,10 @@ fn time_weighting_rewards_unbroken_membership_in_steps() {
 fn time_weighting_stops_at_the_ceiling() {
     let f = setup_with(
         WeightModel::TimeWeighted,
-        Some(TenureSchedule { step_ledgers: STEP, max_steps: 5 }),
+        Some(TenureSchedule {
+            step_ledgers: STEP,
+            max_steps: 5,
+        }),
     );
     let alice = active_member(&f, 2);
 
@@ -170,7 +176,10 @@ fn time_weighting_stops_at_the_ceiling() {
 fn time_weighting_gives_nothing_to_an_account_with_no_power() {
     let f = setup_with(
         WeightModel::TimeWeighted,
-        Some(TenureSchedule { step_ledgers: STEP, max_steps: 5 }),
+        Some(TenureSchedule {
+            step_ledgers: STEP,
+            max_steps: 5,
+        }),
     );
     let alice = Address::generate(&f.e);
     f.membership.issue(&alice);
@@ -185,7 +194,10 @@ fn time_weighting_gives_nothing_to_an_account_with_no_power() {
 fn deploy_time_weighted(tenure: Option<TenureSchedule>) {
     let e = Env::default();
     let membership = Address::generate(&e);
-    e.register(RatifyWeightRule, (membership, WeightModel::TimeWeighted, tenure));
+    e.register(
+        RatifyWeightRule,
+        (membership, WeightModel::TimeWeighted, tenure),
+    );
 }
 
 #[test]
@@ -197,13 +209,19 @@ fn time_weighting_needs_a_schedule() {
 #[test]
 #[should_panic(expected = "Error(Contract, #2)")]
 fn a_step_of_no_ledgers_is_refused() {
-    deploy_time_weighted(Some(TenureSchedule { step_ledgers: 0, max_steps: 5 }));
+    deploy_time_weighted(Some(TenureSchedule {
+        step_ledgers: 0,
+        max_steps: 5,
+    }));
 }
 
 #[test]
 #[should_panic(expected = "Error(Contract, #2)")]
 fn a_schedule_with_no_steps_is_refused() {
-    deploy_time_weighted(Some(TenureSchedule { step_ledgers: STEP, max_steps: 0 }));
+    deploy_time_weighted(Some(TenureSchedule {
+        step_ledgers: STEP,
+        max_steps: 0,
+    }));
 }
 
 #[test]

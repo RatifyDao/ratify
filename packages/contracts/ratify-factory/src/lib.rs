@@ -34,8 +34,8 @@ use soroban_sdk::{
 };
 
 pub use crate::types::{
-    Community, CommunityDeployed, FactoryError, FactoryStorageKey, Settings, TenureSchedule,
-    WeightModel, Wasms,
+    Community, CommunityDeployed, FactoryError, FactoryStorageKey, Settings, TenureSchedule, Wasms,
+    WeightModel,
 };
 
 /// The most communities one register will hold.
@@ -59,7 +59,9 @@ impl RatifyFactory {
     /// different code would mean the register's guarantee was only as good as
     /// whoever held the key, and there is no key.
     pub fn __constructor(e: &Env, wasms: Wasms) {
-        e.storage().instance().set(&FactoryStorageKey::Wasms, &wasms);
+        e.storage()
+            .instance()
+            .set(&FactoryStorageKey::Wasms, &wasms);
         e.storage().instance().set(&FactoryStorageKey::Count, &0u32);
     }
 
@@ -75,7 +77,10 @@ impl RatifyFactory {
 
     /// Returns how many communities the register holds.
     pub fn community_count(e: &Env) -> u32 {
-        e.storage().instance().get(&FactoryStorageKey::Count).unwrap_or(0)
+        e.storage()
+            .instance()
+            .get(&FactoryStorageKey::Count)
+            .unwrap_or(0)
     }
 
     /// Returns a community by its position in the register.
@@ -93,7 +98,9 @@ impl RatifyFactory {
             .storage()
             .persistent()
             .get(&FactoryStorageKey::IndexOfGovernor(governor))?;
-        e.storage().persistent().get(&FactoryStorageKey::Community(index))
+        e.storage()
+            .persistent()
+            .get(&FactoryStorageKey::Community(index))
     }
 
     /// Returns a page of the register, oldest first.
@@ -126,7 +133,10 @@ impl RatifyFactory {
     /// Computed the same way the deployment computes them, so a founder can
     /// see where their community will live before they pay for it, and so the
     /// governor's address can be handed to the timelock that has to trust it.
-    pub fn addresses_for(e: &Env, salt: BytesN<32>) -> (Address, Address, Address, Address, Address, Address) {
+    pub fn addresses_for(
+        e: &Env,
+        salt: BytesN<32>,
+    ) -> (Address, Address, Address, Address, Address, Address) {
         (
             Self::address_for(e, &salt, "membership"),
             Self::address_for(e, &salt, "weightrule"),
@@ -203,10 +213,21 @@ impl RatifyFactory {
             &salt,
             "timelock",
             &wasms.timelock,
-            (governor.clone(), settings.guardian.clone(), settings.timelock_delay).into_val(e),
+            (
+                governor.clone(),
+                settings.guardian.clone(),
+                settings.timelock_delay,
+            )
+                .into_val(e),
         );
 
-        Self::deploy_at(e, &salt, "treasury", &wasms.treasury, (timelock.clone(),).into_val(e));
+        Self::deploy_at(
+            e,
+            &salt,
+            "treasury",
+            &wasms.treasury,
+            (timelock.clone(),).into_val(e),
+        );
 
         Self::deploy_at(
             e,
@@ -252,13 +273,19 @@ impl RatifyFactory {
 
         let key = FactoryStorageKey::Community(index);
         e.storage().persistent().set(&key, &community);
-        e.storage().persistent().extend_ttl(&key, TTL_THRESHOLD, EXTEND_AMOUNT);
+        e.storage()
+            .persistent()
+            .extend_ttl(&key, TTL_THRESHOLD, EXTEND_AMOUNT);
 
         let by_governor = FactoryStorageKey::IndexOfGovernor(governor.clone());
         e.storage().persistent().set(&by_governor, &index);
-        e.storage().persistent().extend_ttl(&by_governor, TTL_THRESHOLD, EXTEND_AMOUNT);
+        e.storage()
+            .persistent()
+            .extend_ttl(&by_governor, TTL_THRESHOLD, EXTEND_AMOUNT);
 
-        e.storage().instance().set(&FactoryStorageKey::Count, &(index + 1));
+        e.storage()
+            .instance()
+            .set(&FactoryStorageKey::Count, &(index + 1));
 
         CommunityDeployed {
             governor,

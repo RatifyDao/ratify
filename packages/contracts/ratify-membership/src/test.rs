@@ -6,7 +6,7 @@ use soroban_sdk::{
     Address, Env, Error, InvokeError, String,
 };
 
-use crate::{RatifyMembership, RatifyMembershipClient, MembershipError, MAX_TERM_LEDGERS};
+use crate::{MembershipError, RatifyMembership, RatifyMembershipClient, MAX_TERM_LEDGERS};
 
 const START: u32 = 10_000;
 const TERM: u32 = 5_000;
@@ -33,7 +33,11 @@ fn setup<'a>() -> Fixture<'a> {
         ),
     );
 
-    Fixture { membership: RatifyMembershipClient::new(&e, &id), e, issuer }
+    Fixture {
+        membership: RatifyMembershipClient::new(&e, &id),
+        e,
+        issuer,
+    }
 }
 
 fn err(code: MembershipError) -> Result<Error, InvokeError> {
@@ -55,7 +59,10 @@ fn a_new_community_has_no_members_and_no_power() {
     assert_eq!(f.membership.member_count(), 0);
     assert_eq!(f.membership.live_total(), 0);
     assert_eq!(f.membership.issuer(), f.issuer);
-    assert_eq!(f.membership.name(), String::from_str(&f.e, "Riverside Commons"));
+    assert_eq!(
+        f.membership.name(),
+        String::from_str(&f.e, "Riverside Commons")
+    );
 }
 
 #[test]
@@ -172,7 +179,8 @@ fn a_grant_must_carry_a_usable_term() {
         Err(err(MembershipError::TermCannotBeZero))
     );
     assert_eq!(
-        f.membership.try_delegate_for(&alice, &alice, &(MAX_TERM_LEDGERS + 1)),
+        f.membership
+            .try_delegate_for(&alice, &alice, &(MAX_TERM_LEDGERS + 1)),
         Err(err(MembershipError::TermTooLong))
     );
 }
@@ -201,7 +209,10 @@ fn a_grant_requires_the_member_s_own_authorisation() {
     let thief = Address::generate(&f.e);
 
     f.e.set_auths(&[]);
-    assert!(f.membership.try_delegate_for(&alice, &thief, &TERM).is_err());
+    assert!(f
+        .membership
+        .try_delegate_for(&alice, &thief, &TERM)
+        .is_err());
     assert_eq!(f.membership.votes(&thief), 0);
 }
 
@@ -248,7 +259,10 @@ fn a_live_grant_cannot_be_swept() {
     f.membership.delegate_for(&alice, &alice, &TERM);
 
     f.e.ledger().set_sequence_number(START + TERM - 1);
-    assert_eq!(f.membership.try_lapse(&alice), Err(err(MembershipError::GrantStillLive)));
+    assert_eq!(
+        f.membership.try_lapse(&alice),
+        Err(err(MembershipError::GrantStillLive))
+    );
     assert_eq!(f.membership.live_total(), 1);
 }
 
@@ -309,7 +323,10 @@ fn a_grant_that_has_already_lapsed_cannot_be_renewed() {
     f.membership.delegate_for(&alice, &alice, &TERM);
 
     f.e.ledger().set_sequence_number(START + TERM);
-    assert_eq!(f.membership.try_renew(&alice, &TERM), Err(err(MembershipError::NoGrant)));
+    assert_eq!(
+        f.membership.try_renew(&alice, &TERM),
+        Err(err(MembershipError::NoGrant))
+    );
 }
 
 // ################## POWER AT A PAST LEDGER ##################

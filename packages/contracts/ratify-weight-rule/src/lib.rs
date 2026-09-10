@@ -33,7 +33,8 @@ use soroban_sdk::{contract, contractimpl, panic_with_error, Address, Env};
 use stellar_governance::votes::Votes;
 
 pub use crate::types::{
-    MembershipClient, TenureSchedule, WeightModel, WeightRuleError, WeightRuleStorageKey,
+    Membership, MembershipClient, TenureSchedule, WeightModel, WeightRuleError,
+    WeightRuleStorageKey,
 };
 
 /// The number of steps of tenure a time weighted community may grant, at most.
@@ -69,10 +70,16 @@ impl RatifyWeightRule {
             {
                 panic_with_error!(e, WeightRuleError::InvalidModel);
             }
-            e.storage().instance().set(&WeightRuleStorageKey::Tenure, &schedule);
+            e.storage()
+                .instance()
+                .set(&WeightRuleStorageKey::Tenure, &schedule);
         }
-        e.storage().instance().set(&WeightRuleStorageKey::Membership, &membership);
-        e.storage().instance().set(&WeightRuleStorageKey::Model, &model);
+        e.storage()
+            .instance()
+            .set(&WeightRuleStorageKey::Membership, &membership);
+        e.storage()
+            .instance()
+            .set(&WeightRuleStorageKey::Model, &model);
     }
 
     /// Returns the tenure schedule, if the community is time weighted.

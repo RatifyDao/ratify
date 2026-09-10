@@ -71,15 +71,13 @@ impl RatifyMembership {
     /// issuance to the timelock with
     /// [`transfer_issuance`](RatifyMembership::transfer_issuance), after which
     /// admitting a member is a proposal like anything else.
-    pub fn __constructor(
-        e: &Env,
-        issuer: Address,
-        name: String,
-        symbol: String,
-        base_uri: String,
-    ) {
-        e.storage().instance().set(&MembershipStorageKey::Issuer, &issuer);
-        e.storage().instance().set(&MembershipStorageKey::MemberCount, &0u32);
+    pub fn __constructor(e: &Env, issuer: Address, name: String, symbol: String, base_uri: String) {
+        e.storage()
+            .instance()
+            .set(&MembershipStorageKey::Issuer, &issuer);
+        e.storage()
+            .instance()
+            .set(&MembershipStorageKey::MemberCount, &0u32);
         Base::set_metadata(e, base_uri, name, symbol);
     }
 
@@ -115,7 +113,10 @@ impl RatifyMembership {
     /// This is the denominator for one member one vote, and the figure the
     /// directory shows next to turnout.
     pub fn member_count(e: &Env) -> u32 {
-        e.storage().instance().get(&MembershipStorageKey::MemberCount).unwrap_or(0)
+        e.storage()
+            .instance()
+            .get(&MembershipStorageKey::MemberCount)
+            .unwrap_or(0)
     }
 
     /// Returns the address that may issue and revoke membership.
@@ -164,8 +165,14 @@ impl RatifyMembership {
     pub fn transfer_issuance(e: &Env, new_issuer: Address) {
         let old_issuer = Self::issuer(e);
         old_issuer.require_auth();
-        e.storage().instance().set(&MembershipStorageKey::Issuer, &new_issuer);
-        IssuerChanged { old_issuer, new_issuer }.publish(e);
+        e.storage()
+            .instance()
+            .set(&MembershipStorageKey::Issuer, &new_issuer);
+        IssuerChanged {
+            old_issuer,
+            new_issuer,
+        }
+        .publish(e);
     }
 
     // ################## GRANTS ##################
@@ -175,7 +182,9 @@ impl RatifyMembership {
     /// A grant is returned whether or not it has expired, so the membership
     /// page can show a member that theirs has lapsed and offer to renew it.
     pub fn grant(e: &Env, account: Address) -> Option<Grant> {
-        e.storage().persistent().get(&MembershipStorageKey::Grant(account))
+        e.storage()
+            .persistent()
+            .get(&MembershipStorageKey::Grant(account))
     }
 
     /// Returns whether an account's grant is still live.
@@ -234,7 +243,13 @@ impl RatifyMembership {
         Self::add_power(e, &delegatee, units, true);
         Self::write_grant(e, &account, &delegatee, units, expires_at, now);
 
-        GrantMade { account, delegatee, units, expires_at }.publish(e);
+        GrantMade {
+            account,
+            delegatee,
+            units,
+            expires_at,
+        }
+        .publish(e);
     }
 
     /// Extends a live grant for a further term, without changing who holds it.
@@ -263,7 +278,12 @@ impl RatifyMembership {
         let expires_at = now.saturating_add(term_ledgers);
         Self::write_grant(e, &account, &grant.delegatee, grant.units, expires_at, now);
 
-        GrantRenewed { account, delegatee: grant.delegatee, expires_at }.publish(e);
+        GrantRenewed {
+            account,
+            delegatee: grant.delegatee,
+            expires_at,
+        }
+        .publish(e);
     }
 
     /// Takes back a live grant before its term is up.
@@ -275,9 +295,16 @@ impl RatifyMembership {
 
         let units = grant.units;
         Self::remove_power(e, &grant.delegatee, units, true);
-        e.storage().persistent().remove(&MembershipStorageKey::Grant(account.clone()));
+        e.storage()
+            .persistent()
+            .remove(&MembershipStorageKey::Grant(account.clone()));
 
-        GrantWithdrawn { account, delegatee: grant.delegatee, units }.publish(e);
+        GrantWithdrawn {
+            account,
+            delegatee: grant.delegatee,
+            units,
+        }
+        .publish(e);
     }
 
     /// Sweeps an expired grant, taking its power out of the live total.
@@ -296,7 +323,9 @@ impl RatifyMembership {
 
         let units = grant.units;
         Self::remove_power(e, &grant.delegatee, units, true);
-        e.storage().persistent().remove(&MembershipStorageKey::Grant(account.clone()));
+        e.storage()
+            .persistent()
+            .remove(&MembershipStorageKey::Grant(account.clone()));
 
         GrantLapsed {
             account,
@@ -370,7 +399,9 @@ impl RatifyMembership {
     /// leaves, so it measures unbroken membership. Time weighted voting reads
     /// it, and it cannot be moved by acquiring or shedding further tokens.
     pub fn member_since(e: &Env, account: Address) -> Option<u32> {
-        e.storage().persistent().get(&MembershipStorageKey::MemberSince(account))
+        e.storage()
+            .persistent()
+            .get(&MembershipStorageKey::MemberSince(account))
     }
 
     /// Returns how many ledgers an account has been a member for, measured at
@@ -400,9 +431,16 @@ impl RatifyMembership {
         granted_at: u32,
     ) {
         let key = MembershipStorageKey::Grant(account.clone());
-        let grant = Grant { delegatee: delegatee.clone(), units, expires_at, granted_at };
+        let grant = Grant {
+            delegatee: delegatee.clone(),
+            units,
+            expires_at,
+            granted_at,
+        };
         e.storage().persistent().set(&key, &grant);
-        e.storage().persistent().extend_ttl(&key, 29 * 17_280, 30 * 17_280);
+        e.storage()
+            .persistent()
+            .extend_ttl(&key, 29 * 17_280, 30 * 17_280);
     }
 
     /// Adds a grant's weight to a delegate.
@@ -446,7 +484,9 @@ impl RatifyMembership {
 
         if grant.expires_at <= e.ledger().sequence() {
             Self::remove_power(e, &grant.delegatee, grant.units, true);
-            e.storage().persistent().remove(&MembershipStorageKey::Grant(account.clone()));
+            e.storage()
+                .persistent()
+                .remove(&MembershipStorageKey::Grant(account.clone()));
             GrantLapsed {
                 account: account.clone(),
                 delegatee: grant.delegatee,
@@ -467,12 +507,23 @@ impl RatifyMembership {
         } else {
             Self::remove_power(e, &grant.delegatee, grant.units - held, false);
         }
-        Self::write_grant(e, account, &grant.delegatee, held, grant.expires_at, grant.granted_at);
+        Self::write_grant(
+            e,
+            account,
+            &grant.delegatee,
+            held,
+            grant.expires_at,
+            grant.granted_at,
+        );
     }
 
     fn count_member(e: &Env, account: &Address) {
         let key = MembershipStorageKey::Counted(account.clone());
-        if e.storage().persistent().get::<_, bool>(&key).unwrap_or(false) {
+        if e.storage()
+            .persistent()
+            .get::<_, bool>(&key)
+            .unwrap_or(false)
+        {
             return;
         }
         e.storage().persistent().set(&key, &true);
@@ -481,16 +532,25 @@ impl RatifyMembership {
             &e.ledger().sequence(),
         );
         let count = Self::member_count(e);
-        e.storage().instance().set(&MembershipStorageKey::MemberCount, &(count + 1));
+        e.storage()
+            .instance()
+            .set(&MembershipStorageKey::MemberCount, &(count + 1));
     }
 
     fn discount_member(e: &Env, account: &Address) {
         let key = MembershipStorageKey::Counted(account.clone());
-        if !e.storage().persistent().get::<_, bool>(&key).unwrap_or(false) {
+        if !e
+            .storage()
+            .persistent()
+            .get::<_, bool>(&key)
+            .unwrap_or(false)
+        {
             return;
         }
         e.storage().persistent().remove(&key);
-        e.storage().persistent().remove(&MembershipStorageKey::MemberSince(account.clone()));
+        e.storage()
+            .persistent()
+            .remove(&MembershipStorageKey::MemberSince(account.clone()));
         let count = Self::member_count(e);
         e.storage()
             .instance()

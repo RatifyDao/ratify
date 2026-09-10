@@ -1,4 +1,8 @@
 #![no_std]
+// The OpenZeppelin Timelock interface fixes schedule()'s argument list at
+// eight (env + seven parameters), so the too_many_arguments lint has nowhere
+// to move. A contracts' call surface is fixed by the trait, not by us.
+#![allow(clippy::too_many_arguments)]
 //! # Ratify timelock
 //!
 //! The delay between a vote passing and money moving.
@@ -39,7 +43,7 @@ use stellar_governance::timelock::{
 };
 
 pub use crate::types::{
-    RatifyTimelockError, DelayUpdated, GuardianChanged, OperationCancelledWithReason,
+    DelayUpdated, GuardianChanged, OperationCancelledWithReason, RatifyTimelockError,
     TimelockStorageKey,
 };
 
@@ -66,8 +70,12 @@ impl RatifyTimelock {
         if min_delay == 0 {
             panic_with_error!(e, RatifyTimelockError::DelayCannotBeZero);
         }
-        e.storage().instance().set(&TimelockStorageKey::Governor, &governor);
-        e.storage().instance().set(&TimelockStorageKey::Guardian, &guardian);
+        e.storage()
+            .instance()
+            .set(&TimelockStorageKey::Governor, &governor);
+        e.storage()
+            .instance()
+            .set(&TimelockStorageKey::Guardian, &guardian);
         set_min_delay(e, min_delay);
     }
 
@@ -126,14 +134,19 @@ impl RatifyTimelock {
             panic_with_error!(e, RatifyTimelockError::NotGuardian);
         }
         guardian.require_auth();
-        if reason.len() == 0 {
+        if reason.is_empty() {
             panic_with_error!(e, RatifyTimelockError::ReasonRequired);
         }
         if reason.len() > MAX_REASON_LENGTH {
             panic_with_error!(e, RatifyTimelockError::ReasonTooLong);
         }
         cancel_operation(e, &operation_id);
-        OperationCancelledWithReason { operation_id, guardian, reason }.publish(e);
+        OperationCancelledWithReason {
+            operation_id,
+            guardian,
+            reason,
+        }
+        .publish(e);
     }
 
     // ################## SELF ADMINISTRATION ##################
@@ -166,7 +179,10 @@ impl RatifyTimelock {
         predecessor: BytesN<32>,
         salt: BytesN<32>,
     ) -> BytesN<32> {
-        hash_operation(e, &Self::guardian_operation(e, new_guardian, predecessor, salt))
+        hash_operation(
+            e,
+            &Self::guardian_operation(e, new_guardian, predecessor, salt),
+        )
     }
 
     /// Applies a scheduled change to the minimum delay.
@@ -188,7 +204,11 @@ impl RatifyTimelock {
 
         let old_delay = Self::get_min_delay(e);
         set_min_delay(e, new_delay);
-        DelayUpdated { old_delay, new_delay }.publish(e);
+        DelayUpdated {
+            old_delay,
+            new_delay,
+        }
+        .publish(e);
     }
 
     /// Applies a scheduled change of guardian.
@@ -204,8 +224,14 @@ impl RatifyTimelock {
         set_execute_operation(e, &operation);
 
         let old_guardian = Self::guardian(e);
-        e.storage().instance().set(&TimelockStorageKey::Guardian, &new_guardian);
-        GuardianChanged { old_guardian, new_guardian }.publish(e);
+        e.storage()
+            .instance()
+            .set(&TimelockStorageKey::Guardian, &new_guardian);
+        GuardianChanged {
+            old_guardian,
+            new_guardian,
+        }
+        .publish(e);
     }
 
     // ################## INTERNAL ##################
@@ -263,7 +289,13 @@ impl Timelock for RatifyTimelock {
             panic_with_error!(e, RatifyTimelockError::NotGovernor);
         }
         proposer.require_auth();
-        let operation = Operation { target, function, args, predecessor, salt };
+        let operation = Operation {
+            target,
+            function,
+            args,
+            predecessor,
+            salt,
+        };
         schedule_operation(e, &operation, delay)
     }
 
@@ -283,7 +315,13 @@ impl Timelock for RatifyTimelock {
         salt: BytesN<32>,
         _executor: Option<Address>,
     ) -> Val {
-        let operation = Operation { target, function, args, predecessor, salt };
+        let operation = Operation {
+            target,
+            function,
+            args,
+            predecessor,
+            salt,
+        };
         execute_operation(e, &operation)
     }
 

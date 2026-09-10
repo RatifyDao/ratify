@@ -63,11 +63,16 @@ impl RatifyDelegateRegistry {
         if contested_margin_bps as u128 > BPS {
             panic_with_error!(e, RegistryError::InvalidMargin);
         }
-        e.storage().instance().set(&RegistryStorageKey::Governor, &governor);
-        e.storage().instance().set(&RegistryStorageKey::WeightRule, &weight_rule);
         e.storage()
             .instance()
-            .set(&RegistryStorageKey::ContestedMarginBps, &contested_margin_bps);
+            .set(&RegistryStorageKey::Governor, &governor);
+        e.storage()
+            .instance()
+            .set(&RegistryStorageKey::WeightRule, &weight_rule);
+        e.storage().instance().set(
+            &RegistryStorageKey::ContestedMarginBps,
+            &contested_margin_bps,
+        );
     }
 
     // ################## QUERIES ##################
@@ -90,7 +95,10 @@ impl RatifyDelegateRegistry {
 
     /// Returns the margin below which a proposal counts as contested.
     pub fn contested_margin_bps(e: &Env) -> u32 {
-        e.storage().instance().get(&RegistryStorageKey::ContestedMarginBps).unwrap_or(0)
+        e.storage()
+            .instance()
+            .get(&RegistryStorageKey::ContestedMarginBps)
+            .unwrap_or(0)
     }
 
     /// Returns an account's public record.
@@ -133,12 +141,16 @@ impl RatifyDelegateRegistry {
 
     /// Returns a proposal as the registry knows it.
     pub fn proposal(e: &Env, proposal_id: BytesN<32>) -> Option<Proposal> {
-        e.storage().persistent().get(&RegistryStorageKey::Proposal(proposal_id))
+        e.storage()
+            .persistent()
+            .get(&RegistryStorageKey::Proposal(proposal_id))
     }
 
     /// Returns how an account voted on a proposal, if they did.
     pub fn ballot(e: &Env, proposal_id: BytesN<32>, account: Address) -> Option<Ballot> {
-        e.storage().persistent().get(&RegistryStorageKey::Ballot(proposal_id, account))
+        e.storage()
+            .persistent()
+            .get(&RegistryStorageKey::Ballot(proposal_id, account))
     }
 
     /// Returns whether an account has been settled against a proposal.
@@ -166,7 +178,12 @@ impl RatifyDelegateRegistry {
             tallied: false,
         };
         Self::put_proposal(e, &proposal_id, &proposal);
-        ProposalOpened { proposal_id, snapshot, deadline }.publish(e);
+        ProposalOpened {
+            proposal_id,
+            snapshot,
+            deadline,
+        }
+        .publish(e);
     }
 
     /// Records a vote. Only the governor may call this.
@@ -188,9 +205,17 @@ impl RatifyDelegateRegistry {
 
         let key = RegistryStorageKey::Ballot(proposal_id.clone(), account.clone());
         e.storage().persistent().set(&key, &ballot);
-        e.storage().persistent().extend_ttl(&key, TTL_THRESHOLD, EXTEND_AMOUNT);
+        e.storage()
+            .persistent()
+            .extend_ttl(&key, TTL_THRESHOLD, EXTEND_AMOUNT);
 
-        VoteRecorded { account, proposal_id, ballot, weight }.publish(e);
+        VoteRecorded {
+            account,
+            proposal_id,
+            ballot,
+            weight,
+        }
+        .publish(e);
     }
 
     // ################## SETTLED BY ANYONE ##################
@@ -216,8 +241,8 @@ impl RatifyDelegateRegistry {
             panic_with_error!(e, RegistryError::AlreadySettled);
         }
 
-        let weight = WeightRuleClient::new(e, &Self::weight_rule(e))
-            .weight_at(&account, &proposal.snapshot);
+        let weight =
+            WeightRuleClient::new(e, &Self::weight_rule(e)).weight_at(&account, &proposal.snapshot);
         if weight == 0 {
             panic_with_error!(e, RegistryError::NotEligible);
         }
@@ -254,11 +279,15 @@ impl RatifyDelegateRegistry {
 
         let record_key = RegistryStorageKey::Record(account.clone());
         e.storage().persistent().set(&record_key, &record);
-        e.storage().persistent().extend_ttl(&record_key, TTL_THRESHOLD, EXTEND_AMOUNT);
+        e.storage()
+            .persistent()
+            .extend_ttl(&record_key, TTL_THRESHOLD, EXTEND_AMOUNT);
 
         let settled_key = RegistryStorageKey::Settled(proposal_id.clone(), account.clone());
         e.storage().persistent().set(&settled_key, &true);
-        e.storage().persistent().extend_ttl(&settled_key, TTL_THRESHOLD, EXTEND_AMOUNT);
+        e.storage()
+            .persistent()
+            .extend_ttl(&settled_key, TTL_THRESHOLD, EXTEND_AMOUNT);
 
         AccountSettled {
             account,
@@ -283,8 +312,8 @@ impl RatifyDelegateRegistry {
     /// account settled against the proposal is judged against the same
     /// numbers.
     fn tally(e: &Env, proposal_id: &BytesN<32>, mut proposal: Proposal) -> Proposal {
-        let counts = GovernorClient::new(e, &Self::governor(e))
-            .get_proposal_vote_counts(proposal_id);
+        let counts =
+            GovernorClient::new(e, &Self::governor(e)).get_proposal_vote_counts(proposal_id);
 
         let decisive = counts.for_votes + counts.against_votes;
         let margin = counts.for_votes.abs_diff(counts.against_votes);
@@ -302,6 +331,8 @@ impl RatifyDelegateRegistry {
     fn put_proposal(e: &Env, proposal_id: &BytesN<32>, proposal: &Proposal) {
         let key = RegistryStorageKey::Proposal(proposal_id.clone());
         e.storage().persistent().set(&key, proposal);
-        e.storage().persistent().extend_ttl(&key, TTL_THRESHOLD, EXTEND_AMOUNT);
+        e.storage()
+            .persistent()
+            .extend_ttl(&key, TTL_THRESHOLD, EXTEND_AMOUNT);
     }
 }

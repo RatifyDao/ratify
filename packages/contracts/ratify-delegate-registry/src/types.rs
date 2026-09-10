@@ -1,7 +1,9 @@
 //! The record itself, plus the slices of the governor and the weight rule the
 //! registry reads when it settles a proposal.
 
-use soroban_sdk::{contractclient, contracterror, contractevent, contracttype, Address, BytesN, Env};
+use soroban_sdk::{
+    contractclient, contracterror, contractevent, contracttype, Address, BytesN, Env,
+};
 
 /// A delegate's public record.
 ///

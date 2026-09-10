@@ -1,7 +1,9 @@
 //! Storage keys, errors and events specific to the Ratify governor, plus the
 //! slice of the delegate registry it writes to.
 
-use soroban_sdk::{contractclient, contracterror, contractevent, contracttype, Address, BytesN, Env, String};
+use soroban_sdk::{
+    contractclient, contracterror, contractevent, contracttype, Address, BytesN, Env, String,
+};
 
 #[contracttype]
 #[derive(Clone)]
@@ -80,10 +82,5 @@ pub trait GuardianOf {
     /// The address allowed to pull the brake.
     fn guardian(e: &Env) -> Address;
     /// Cancels a waiting operation, with a reason.
-    fn cancel_with_reason(
-        e: &Env,
-        operation_id: BytesN<32>,
-        guardian: Address,
-        reason: String,
-    );
+    fn cancel_with_reason(e: &Env, operation_id: BytesN<32>, guardian: Address, reason: String);
 }

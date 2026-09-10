@@ -24,7 +24,7 @@ import {
  */
 
 // Improvement 7 — address validation before any contract call.
-import { assertAddress } from "../../shared/src/addresses.js";
+import { assertAddress } from "../../../shared/src/addresses.js";
 
 export const NETWORK = {
   rpcUrl: process.env.NEXT_PUBLIC_RATIFY_RPC_URL ?? "https://soroban-testnet.stellar.org",

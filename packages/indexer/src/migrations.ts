@@ -40,12 +40,12 @@ const MIGRATIONS: Migration[] = [
   {
     version: 2,
     description: "Add weight column to votes table",
-    up: `ALTER TABLE votes ADD COLUMN IF NOT EXISTS raw_weight TEXT NOT NULL DEFAULT '';`,
+    up: `ALTER TABLE votes ADD COLUMN raw_weight TEXT NOT NULL DEFAULT '';`,
   },
   {
     version: 3,
     description: "Add contested_margin_bps to communities table",
-    up: `ALTER TABLE communities ADD COLUMN IF NOT EXISTS contested_margin_bps INTEGER NOT NULL DEFAULT 2000;`,
+    up: `ALTER TABLE communities ADD COLUMN contested_margin_bps INTEGER NOT NULL DEFAULT 2000;`,
   },
 ];
 

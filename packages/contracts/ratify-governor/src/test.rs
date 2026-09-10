@@ -171,26 +171,30 @@ fn payment(f: &Fixture, to: &Address, amount: i128, text: &str) -> Payment {
 }
 
 fn propose(f: &Fixture, p: &Payment, proposer: &Address) -> BytesN<32> {
-    f.gov.propose(
-        &p.targets,
-        &p.functions,
-        &p.args,
-        &p.description,
-        proposer,
-    )
+    f.gov
+        .propose(&p.targets, &p.functions, &p.args, &p.description, proposer)
 }
 
 fn queue(f: &Fixture, p: &Payment, by: &Address) -> BytesN<32> {
-    f.gov.queue(&p.targets, &p.functions, &p.args, &p.description_hash, &0, by)
+    f.gov.queue(
+        &p.targets,
+        &p.functions,
+        &p.args,
+        &p.description_hash,
+        &0,
+        by,
+    )
 }
 
 fn execute(f: &Fixture, p: &Payment, by: &Address) -> BytesN<32> {
-    f.gov.execute(&p.targets, &p.functions, &p.args, &p.description_hash, by)
+    f.gov
+        .execute(&p.targets, &p.functions, &p.args, &p.description_hash, by)
 }
 
 /// Moves to a ledger inside the voting window of a proposal made now.
 fn open_voting(f: &Fixture, proposed_at: u32) {
-    f.e.ledger().set_sequence_number(proposed_at + VOTING_DELAY + 1);
+    f.e.ledger()
+        .set_sequence_number(proposed_at + VOTING_DELAY + 1);
 }
 
 /// Moves past the end of the voting window.
@@ -218,7 +222,8 @@ fn a_vote_ends_in_a_payment() {
 
     open_voting(&f, proposed_at);
     assert_eq!(f.gov.proposal_state(&id), ProposalState::Active);
-    f.gov.cast_vote(&id, &1, &String::from_str(&f.e, "The roof leaks."), &alice);
+    f.gov
+        .cast_vote(&id, &1, &String::from_str(&f.e, "The roof leaks."), &alice);
     f.gov.cast_vote(&id, &1, &String::from_str(&f.e, ""), &bob);
 
     close_voting(&f, proposed_at);
@@ -232,7 +237,13 @@ fn a_vote_ends_in_a_payment() {
 
     assert!(f
         .gov
-        .try_execute(&p.targets, &p.functions, &p.args, &p.description_hash, &alice)
+        .try_execute(
+            &p.targets,
+            &p.functions,
+            &p.args,
+            &p.description_hash,
+            &alice
+        )
         .is_err());
     assert_eq!(f.token.balance(&recipient), 0);
 
@@ -262,7 +273,8 @@ fn executing_twice_pays_once() {
 
     propose(&f, &p, &alice);
     open_voting(&f, proposed_at);
-    f.gov.cast_vote(&p_id(&f, &p), &1, &String::from_str(&f.e, ""), &alice);
+    f.gov
+        .cast_vote(&p_id(&f, &p), &1, &String::from_str(&f.e, ""), &alice);
     close_voting(&f, proposed_at);
     queue(&f, &p, &alice);
     f.e.ledger()
@@ -271,7 +283,13 @@ fn executing_twice_pays_once() {
 
     assert!(f
         .gov
-        .try_execute(&p.targets, &p.functions, &p.args, &p.description_hash, &alice)
+        .try_execute(
+            &p.targets,
+            &p.functions,
+            &p.args,
+            &p.description_hash,
+            &alice
+        )
         .is_err());
     assert_eq!(f.token.balance(&recipient), 1_000);
 }
@@ -287,13 +305,23 @@ fn a_proposal_that_was_not_queued_cannot_run() {
 
     propose(&f, &p, &alice);
     open_voting(&f, proposed_at);
-    f.gov.cast_vote(&p_id(&f, &p), &1, &String::from_str(&f.e, ""), &alice);
+    f.gov
+        .cast_vote(&p_id(&f, &p), &1, &String::from_str(&f.e, ""), &alice);
     close_voting(&f, proposed_at);
 
-    assert_eq!(f.gov.proposal_state(&p_id(&f, &p)), ProposalState::Succeeded);
+    assert_eq!(
+        f.gov.proposal_state(&p_id(&f, &p)),
+        ProposalState::Succeeded
+    );
     assert!(f
         .gov
-        .try_execute(&p.targets, &p.functions, &p.args, &p.description_hash, &alice)
+        .try_execute(
+            &p.targets,
+            &p.functions,
+            &p.args,
+            &p.description_hash,
+            &alice
+        )
         .is_err());
     assert_eq!(f.token.balance(&recipient), 0);
 }
@@ -310,14 +338,23 @@ fn a_proposal_that_lost_cannot_be_queued() {
 
     propose(&f, &p, &alice);
     open_voting(&f, proposed_at);
-    f.gov.cast_vote(&p_id(&f, &p), &1, &String::from_str(&f.e, ""), &alice);
-    f.gov.cast_vote(&p_id(&f, &p), &0, &String::from_str(&f.e, ""), &bob);
+    f.gov
+        .cast_vote(&p_id(&f, &p), &1, &String::from_str(&f.e, ""), &alice);
+    f.gov
+        .cast_vote(&p_id(&f, &p), &0, &String::from_str(&f.e, ""), &bob);
     close_voting(&f, proposed_at);
 
     assert_eq!(f.gov.proposal_state(&p_id(&f, &p)), ProposalState::Defeated);
     assert!(f
         .gov
-        .try_queue(&p.targets, &p.functions, &p.args, &p.description_hash, &0, &alice)
+        .try_queue(
+            &p.targets,
+            &p.functions,
+            &p.args,
+            &p.description_hash,
+            &0,
+            &alice
+        )
         .is_err());
 }
 
@@ -335,7 +372,8 @@ fn a_proposal_nobody_much_voted_on_does_not_pass() {
 
     propose(&f, &p, &alice);
     open_voting(&f, proposed_at);
-    f.gov.cast_vote(&p_id(&f, &p), &1, &String::from_str(&f.e, ""), &alice);
+    f.gov
+        .cast_vote(&p_id(&f, &p), &1, &String::from_str(&f.e, ""), &alice);
 
     let (reached, needed) = f.ratify.quorum_progress(&p_id(&f, &p));
     assert_eq!(reached, 1);
@@ -365,14 +403,18 @@ fn quorum_is_measured_against_power_that_is_still_live() {
 
     propose(&f, &p, &alice);
     open_voting(&f, proposed_at);
-    f.gov.cast_vote(&p_id(&f, &p), &1, &String::from_str(&f.e, ""), &alice);
+    f.gov
+        .cast_vote(&p_id(&f, &p), &1, &String::from_str(&f.e, ""), &alice);
 
     let (reached, needed) = f.ratify.quorum_progress(&p_id(&f, &p));
     assert_eq!(reached, 1);
     assert_eq!(needed, 1);
 
     close_voting(&f, proposed_at);
-    assert_eq!(f.gov.proposal_state(&p_id(&f, &p)), ProposalState::Succeeded);
+    assert_eq!(
+        f.gov.proposal_state(&p_id(&f, &p)),
+        ProposalState::Succeeded
+    );
 }
 
 #[test]
@@ -392,7 +434,8 @@ fn power_acquired_after_a_proposal_opened_does_not_count() {
     f.membership.delegate_for(&latecomer, &latecomer, &TERM);
 
     assert_eq!(
-        f.gov.cast_vote(&p_id(&f, &p), &0, &String::from_str(&f.e, ""), &latecomer),
+        f.gov
+            .cast_vote(&p_id(&f, &p), &0, &String::from_str(&f.e, ""), &latecomer),
         0
     );
 }
@@ -410,7 +453,8 @@ fn the_guardian_can_stop_an_approved_proposal() {
 
     let id = propose(&f, &p, &alice);
     open_voting(&f, proposed_at);
-    f.gov.cast_vote(&id, &1, &String::from_str(&f.e, ""), &alice);
+    f.gov
+        .cast_vote(&id, &1, &String::from_str(&f.e, ""), &alice);
     close_voting(&f, proposed_at);
     queue(&f, &p, &alice);
 
@@ -425,21 +469,26 @@ fn the_guardian_can_stop_an_approved_proposal() {
 
     assert_eq!(f.gov.proposal_state(&id), ProposalState::Canceled);
 
-    let operation = f.ratify.operation_id(
-        &p.targets,
-        &p.functions,
-        &p.args,
-        &p.description_hash,
-        &0,
-    );
+    let operation =
+        f.ratify
+            .operation_id(&p.targets, &p.functions, &p.args, &p.description_hash, &0);
     let timelock = TimelockClient::new(&f.e, &f.timelock_id);
-    assert_eq!(timelock.get_operation_state(&operation), OperationState::Unset);
+    assert_eq!(
+        timelock.get_operation_state(&operation),
+        OperationState::Unset
+    );
 
     f.e.ledger()
         .set_sequence_number(f.e.ledger().sequence() + TIMELOCK_DELAY);
     assert!(f
         .gov
-        .try_execute(&p.targets, &p.functions, &p.args, &p.description_hash, &alice)
+        .try_execute(
+            &p.targets,
+            &p.functions,
+            &p.args,
+            &p.description_hash,
+            &alice
+        )
         .is_err());
     assert_eq!(f.token.balance(&recipient), 0);
 }
@@ -498,18 +547,36 @@ fn a_proposer_may_withdraw_before_voting_opens_and_not_after() {
 
     let bob = member(&f, 1);
     assert_eq!(
-        f.gov.try_cancel(&p.targets, &p.functions, &p.args, &p.description_hash, &bob),
+        f.gov
+            .try_cancel(&p.targets, &p.functions, &p.args, &p.description_hash, &bob),
         Err(err(RatifyGovernorError::NotProposer))
     );
 
-    f.gov.cancel(&p.targets, &p.functions, &p.args, &p.description_hash, &alice);
+    f.gov.cancel(
+        &p.targets,
+        &p.functions,
+        &p.args,
+        &p.description_hash,
+        &alice,
+    );
     assert_eq!(f.gov.proposal_state(&id), ProposalState::Canceled);
 
-    let q = payment(&f, &Address::generate(&f.e), 2_000, "Too late for this one.");
+    let q = payment(
+        &f,
+        &Address::generate(&f.e),
+        2_000,
+        "Too late for this one.",
+    );
     propose(&f, &q, &alice);
     open_voting(&f, proposed_at);
     assert_eq!(
-        f.gov.try_cancel(&q.targets, &q.functions, &q.args, &q.description_hash, &alice),
+        f.gov.try_cancel(
+            &q.targets,
+            &q.functions,
+            &q.args,
+            &q.description_hash,
+            &alice
+        ),
         Err(err(RatifyGovernorError::WrongState))
     );
 }
@@ -527,7 +594,8 @@ fn a_vote_cannot_authorise_what_the_policy_forbids() {
     let p = payment(&f, &recipient, 20_000, "More than the policy allows.");
     propose(&f, &p, &alice);
     open_voting(&f, proposed_at);
-    f.gov.cast_vote(&p_id(&f, &p), &1, &String::from_str(&f.e, ""), &alice);
+    f.gov
+        .cast_vote(&p_id(&f, &p), &1, &String::from_str(&f.e, ""), &alice);
     close_voting(&f, proposed_at);
     queue(&f, &p, &alice);
     f.e.ledger()
@@ -535,7 +603,13 @@ fn a_vote_cannot_authorise_what_the_policy_forbids() {
 
     assert!(f
         .gov
-        .try_execute(&p.targets, &p.functions, &p.args, &p.description_hash, &alice)
+        .try_execute(
+            &p.targets,
+            &p.functions,
+            &p.args,
+            &p.description_hash,
+            &alice
+        )
         .is_err());
     assert_eq!(f.token.balance(&recipient), 0);
     assert_eq!(f.treasury.balance(&f.asset), 1_000_000);
@@ -564,7 +638,8 @@ fn a_vote_reaches_the_delegate_record() {
     assert_eq!(recorded.snapshot, proposed_at + VOTING_DELAY);
 
     open_voting(&f, proposed_at);
-    f.gov.cast_vote(&id, &1, &String::from_str(&f.e, ""), &alice);
+    f.gov
+        .cast_vote(&id, &1, &String::from_str(&f.e, ""), &alice);
     close_voting(&f, proposed_at);
 
     f.registry.settle(&alice, &id);
@@ -617,7 +692,8 @@ fn a_member_cannot_vote_twice() {
     let id = propose(&f, &p, &alice);
 
     open_voting(&f, proposed_at);
-    f.gov.cast_vote(&id, &1, &String::from_str(&f.e, ""), &alice);
+    f.gov
+        .cast_vote(&id, &1, &String::from_str(&f.e, ""), &alice);
     assert!(f
         .gov
         .try_cast_vote(&id, &0, &String::from_str(&f.e, ""), &alice)
@@ -647,5 +723,6 @@ fn voting_before_it_opens_or_after_it_closes_is_refused() {
 
 /// The identifier of a proposal, recomputed from its parts.
 fn p_id(f: &Fixture, p: &Payment) -> BytesN<32> {
-    f.gov.get_proposal_id(&p.targets, &p.functions, &p.args, &p.description_hash)
+    f.gov
+        .get_proposal_id(&p.targets, &p.functions, &p.args, &p.description_hash)
 }

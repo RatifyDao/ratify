@@ -6,7 +6,7 @@ use soroban_sdk::{
     Address, BytesN, Env, Error, InvokeError, String,
 };
 
-use crate::{RatifyFactory, RatifyFactoryClient, FactoryError, Settings, Wasms};
+use crate::{FactoryError, RatifyFactory, RatifyFactoryClient, Settings, Wasms};
 
 const START: u32 = 10_000;
 
@@ -56,7 +56,10 @@ fn a_new_factory_has_an_empty_register() {
 
     assert_eq!(factory.community_count(), 0);
     assert_eq!(factory.communities(&0, &10).len(), 0);
-    assert_eq!(factory.wasms().membership, BytesN::from_array(&e, &[1u8; 32]));
+    assert_eq!(
+        factory.wasms().membership,
+        BytesN::from_array(&e, &[1u8; 32])
+    );
 }
 
 #[test]
@@ -100,7 +103,14 @@ fn every_contract_in_a_community_gets_its_own_address() {
     let (membership, weight_rule, governor, timelock, treasury, registry) =
         factory.addresses_for(&BytesN::from_array(&e, &[7u8; 32]));
 
-    let all = [membership, weight_rule, governor, timelock, treasury, registry];
+    let all = [
+        membership,
+        weight_rule,
+        governor,
+        timelock,
+        treasury,
+        registry,
+    ];
     for i in 0..all.len() {
         for j in (i + 1)..all.len() {
             assert_ne!(all[i], all[j], "two contracts would collide at one address");
@@ -266,8 +276,10 @@ mod wired {
         let salt = BytesN::from_array(&e, &[9u8; 32]);
 
         let predicted = factory.addresses_for(&salt);
-        let community =
-            factory.deploy(&salt, &settings(&e, &founder, &guardian, "Riverside Commons"));
+        let community = factory.deploy(
+            &salt,
+            &settings(&e, &founder, &guardian, "Riverside Commons"),
+        );
 
         assert_eq!(community.membership, predicted.0);
         assert_eq!(community.governor, predicted.2);
@@ -385,12 +397,22 @@ mod wired {
         governor.cast_vote(&id, &1, &String::from_str(&e, ""), &alice);
 
         e.ledger().set_sequence_number(START + 1 + 20 + 200 + 1);
-        governor.queue(&targets, &functions, &all_args, &description_hash, &0, &alice);
+        governor.queue(
+            &targets,
+            &functions,
+            &all_args,
+            &description_hash,
+            &0,
+            &alice,
+        );
 
         e.ledger().set_sequence_number(e.ledger().sequence() + 500);
         governor.execute(&targets, &functions, &all_args, &description_hash, &alice);
 
-        assert_eq!(token::TokenClient::new(&e, &asset).balance(&recipient), 4_000);
+        assert_eq!(
+            token::TokenClient::new(&e, &asset).balance(&recipient),
+            4_000
+        );
         assert_eq!(treasury.outflow_count(), 1);
     }
 }

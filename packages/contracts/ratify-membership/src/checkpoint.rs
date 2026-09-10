@@ -8,7 +8,7 @@
 //! at a past ledger costs a binary search rather than loading the whole
 //! history.
 
-use soroban_sdk::{contracttype, Env, Address};
+use soroban_sdk::{contracttype, Address, Env};
 
 /// A recorded value and the ledger from which it applied.
 #[contracttype]
@@ -48,7 +48,10 @@ const TTL_THRESHOLD: u32 = EXTEND_AMOUNT - 17_280;
 
 /// Returns how many entries a series holds.
 pub fn count(e: &Env, series: &Series) -> u32 {
-    e.storage().persistent().get(&CheckpointKey::Count(series.clone())).unwrap_or(0)
+    e.storage()
+        .persistent()
+        .get(&CheckpointKey::Count(series.clone()))
+        .unwrap_or(0)
 }
 
 /// Returns the value of a series as it stands now.
@@ -112,7 +115,9 @@ pub fn record(e: &Env, series: &Series, value: u128) {
     }
 
     write(e, series, count, &Checkpoint { ledger: now, value });
-    e.storage().persistent().set(&CheckpointKey::Count(series.clone()), &(count + 1));
+    e.storage()
+        .persistent()
+        .set(&CheckpointKey::Count(series.clone()), &(count + 1));
     extend(e, &CheckpointKey::Count(series.clone()));
 }
 
@@ -131,7 +136,10 @@ fn entry(e: &Env, series: &Series, index: u32) -> Checkpoint {
     e.storage()
         .persistent()
         .get(&CheckpointKey::At(series.clone(), index))
-        .unwrap_or(Checkpoint { ledger: 0, value: 0 })
+        .unwrap_or(Checkpoint {
+            ledger: 0,
+            value: 0,
+        })
 }
 
 fn write(e: &Env, series: &Series, index: u32, checkpoint: &Checkpoint) {
@@ -141,5 +149,7 @@ fn write(e: &Env, series: &Series, index: u32, checkpoint: &Checkpoint) {
 }
 
 fn extend(e: &Env, key: &CheckpointKey) {
-    e.storage().persistent().extend_ttl(key, TTL_THRESHOLD, EXTEND_AMOUNT);
+    e.storage()
+        .persistent()
+        .extend_ttl(key, TTL_THRESHOLD, EXTEND_AMOUNT);
 }

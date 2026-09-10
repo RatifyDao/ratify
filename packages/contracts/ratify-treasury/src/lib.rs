@@ -60,9 +60,15 @@ impl RatifyTreasury {
     /// different timelock deploys a new treasury and moves the funds by
     /// proposal, which is visible to every member.
     pub fn __constructor(e: &Env, timelock: Address) {
-        e.storage().instance().set(&TreasuryStorageKey::Timelock, &timelock);
-        e.storage().instance().set(&TreasuryStorageKey::RestrictDestinations, &false);
-        e.storage().instance().set(&TreasuryStorageKey::OutflowCount, &0u32);
+        e.storage()
+            .instance()
+            .set(&TreasuryStorageKey::Timelock, &timelock);
+        e.storage()
+            .instance()
+            .set(&TreasuryStorageKey::RestrictDestinations, &false);
+        e.storage()
+            .instance()
+            .set(&TreasuryStorageKey::OutflowCount, &0u32);
     }
 
     // ################## QUERIES ##################
@@ -83,7 +89,9 @@ impl RatifyTreasury {
     /// Returns the policy in force for an asset, or `None` if the asset may
     /// not leave the treasury.
     pub fn policy(e: &Env, asset: Address) -> Option<AssetPolicy> {
-        e.storage().persistent().get(&TreasuryStorageKey::Policy(asset))
+        e.storage()
+            .persistent()
+            .get(&TreasuryStorageKey::Policy(asset))
     }
 
     /// Returns whether payments are restricted to the destination allowlist.
@@ -138,7 +146,10 @@ impl RatifyTreasury {
 
     /// Returns the number of payments the treasury has ever made.
     pub fn outflow_count(e: &Env) -> u32 {
-        e.storage().instance().get(&TreasuryStorageKey::OutflowCount).unwrap_or(0)
+        e.storage()
+            .instance()
+            .get(&TreasuryStorageKey::OutflowCount)
+            .unwrap_or(0)
     }
 
     /// Returns a single payment by index, oldest first.
@@ -188,12 +199,13 @@ impl RatifyTreasury {
         if amount <= 0 {
             panic_with_error!(e, TreasuryError::InvalidAmount);
         }
-        token::TokenClient::new(e, &asset).transfer(
-            &from,
-            &e.current_contract_address(),
-            &amount,
-        );
-        DepositMade { asset, from, amount }.publish(e);
+        token::TokenClient::new(e, &asset).transfer(&from, e.current_contract_address(), &amount);
+        DepositMade {
+            asset,
+            from,
+            amount,
+        }
+        .publish(e);
     }
 
     // ################## SPENDING ##################
@@ -215,13 +227,7 @@ impl RatifyTreasury {
     ///   restricted and this one is not allowed.
     /// * [`TreasuryError::OverWindowCap`] - over the rolling window cap.
     /// * [`TreasuryError::WindowFull`] - too many payments inside the window.
-    pub fn pay(
-        e: &Env,
-        asset: Address,
-        to: Address,
-        amount: i128,
-        proposal_id: BytesN<32>,
-    ) -> u32 {
+    pub fn pay(e: &Env, asset: Address, to: Address, amount: i128, proposal_id: BytesN<32>) -> u32 {
         Self::require_timelock(e);
 
         if amount <= 0 {
@@ -257,11 +263,7 @@ impl RatifyTreasury {
             .set(&TreasuryStorageKey::Window(asset.clone()), &window);
         Self::extend(e, &TreasuryStorageKey::Window(asset.clone()));
 
-        token::TokenClient::new(e, &asset).transfer(
-            &e.current_contract_address(),
-            &to,
-            &amount,
-        );
+        token::TokenClient::new(e, &asset).transfer(&e.current_contract_address(), &to, &amount);
 
         let index = Self::outflow_count(e);
         let outflow = Outflow {
@@ -271,11 +273,22 @@ impl RatifyTreasury {
             ledger,
             proposal_id: proposal_id.clone(),
         };
-        e.storage().persistent().set(&TreasuryStorageKey::Outflow(index), &outflow);
+        e.storage()
+            .persistent()
+            .set(&TreasuryStorageKey::Outflow(index), &outflow);
         Self::extend(e, &TreasuryStorageKey::Outflow(index));
-        e.storage().instance().set(&TreasuryStorageKey::OutflowCount, &(index + 1));
+        e.storage()
+            .instance()
+            .set(&TreasuryStorageKey::OutflowCount, &(index + 1));
 
-        PaymentMade { asset, to, proposal_id, amount, index }.publish(e);
+        PaymentMade {
+            asset,
+            to,
+            proposal_id,
+            amount,
+            index,
+        }
+        .publish(e);
 
         index
     }
@@ -298,16 +311,30 @@ impl RatifyTreasury {
         if per_payment_cap <= 0 || window_cap <= 0 || window_ledgers == 0 {
             panic_with_error!(e, TreasuryError::InvalidPolicy);
         }
-        let policy = AssetPolicy { per_payment_cap, window_cap, window_ledgers };
-        e.storage().persistent().set(&TreasuryStorageKey::Policy(asset.clone()), &policy);
+        let policy = AssetPolicy {
+            per_payment_cap,
+            window_cap,
+            window_ledgers,
+        };
+        e.storage()
+            .persistent()
+            .set(&TreasuryStorageKey::Policy(asset.clone()), &policy);
         Self::extend(e, &TreasuryStorageKey::Policy(asset.clone()));
-        PolicySet { asset, per_payment_cap, window_cap, window_ledgers }.publish(e);
+        PolicySet {
+            asset,
+            per_payment_cap,
+            window_cap,
+            window_ledgers,
+        }
+        .publish(e);
     }
 
     /// Withdraws an asset's policy, after which it cannot leave the treasury.
     pub fn remove_policy(e: &Env, asset: Address) {
         Self::require_timelock(e);
-        e.storage().persistent().remove(&TreasuryStorageKey::Policy(asset.clone()));
+        e.storage()
+            .persistent()
+            .remove(&TreasuryStorageKey::Policy(asset.clone()));
         PolicyRemoved { asset }.publish(e);
     }
 
@@ -317,7 +344,9 @@ impl RatifyTreasury {
     /// limits. With it on, only allowed destinations may.
     pub fn set_destination_restriction(e: &Env, restricted: bool) {
         Self::require_timelock(e);
-        e.storage().instance().set(&TreasuryStorageKey::RestrictDestinations, &restricted);
+        e.storage()
+            .instance()
+            .set(&TreasuryStorageKey::RestrictDestinations, &restricted);
         DestinationRestrictionSet { restricted }.publish(e);
     }
 
@@ -334,7 +363,11 @@ impl RatifyTreasury {
                 .persistent()
                 .remove(&TreasuryStorageKey::Destination(destination.clone()));
         }
-        DestinationSet { destination, allowed }.publish(e);
+        DestinationSet {
+            destination,
+            allowed,
+        }
+        .publish(e);
     }
 
     // ################## INTERNAL ##################
@@ -370,12 +403,7 @@ impl RatifyTreasury {
     }
 
     /// Drops the entries that have aged out of the window and returns the rest.
-    fn prune_window(
-        e: &Env,
-        asset: &Address,
-        window_ledgers: u32,
-        now: u32,
-    ) -> Vec<(u32, i128)> {
+    fn prune_window(e: &Env, asset: &Address, window_ledgers: u32, now: u32) -> Vec<(u32, i128)> {
         let cutoff = now.saturating_sub(window_ledgers);
         let mut kept: Vec<(u32, i128)> = Vec::new(e);
         for (ledger, amount) in Self::window_entries(e, asset).iter() {
@@ -388,6 +416,8 @@ impl RatifyTreasury {
 
     /// Restores the lifetime of a persistent entry that was just written.
     fn extend(e: &Env, key: &TreasuryStorageKey) {
-        e.storage().persistent().extend_ttl(key, TTL_THRESHOLD, EXTEND_AMOUNT);
+        e.storage()
+            .persistent()
+            .extend_ttl(key, TTL_THRESHOLD, EXTEND_AMOUNT);
     }
 }

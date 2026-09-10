@@ -7,6 +7,9 @@
 </p>
 
 <p align="center">
+  <a href="https://github.com/RatifyDao/ratify/actions/workflows/ci.yml">
+    <img src="https://github.com/RatifyDao/ratify/actions/workflows/ci.yml/badge.svg" alt="CI"/>
+  </a>
   <a href="LICENSE">
     <img src="https://img.shields.io/badge/license-MIT-blue.svg" alt="MIT License"/>
   </a>
